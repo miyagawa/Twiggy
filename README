@@ -1,17 +1,23 @@
 NAME
-    Plack::Server::AnyEvent -
+    Plack::Server::AnyEvent - AnyEvent based HTTP server
 
 SYNOPSIS
-      use Plack::Server::AnyEvent;
+      my $server = Plack::Server::AnyEvent->new(
+          host => $host,
+          port => $port,
+      );
+      $server->run($app);
 
 DESCRIPTION
-    Plack::Server::AnyEvent is
-
-AUTHOR
-    Tatsuhiko Miyagawa <miyagawa@bulknews.net>
+    Plack::Server::AnyEvent is a Plack server implementation using AnyEvent.
+    This server runs in a non-blocking event loop and suitable for
+    event-driven web applications like streaming API servers.
 
 LICENSE
-    This library is free software; you can redistribute it and/or modify it
-    under the same terms as Perl itself.
+    This module is licensed under the same terms as Perl itself.
 
-SEE ALSO
+AUTHOR
+    Tokuhiro Matsuno
+
+    Tatsuhiko Miyagawa
+

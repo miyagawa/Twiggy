@@ -1,6 +1,8 @@
 package Plack::Server::AnyEvent;
 use strict;
 use warnings;
+use 5.008_001;
+our $VERSION = '0.01';
 
 use AnyEvent;
 use AnyEvent::Handle;
@@ -179,8 +181,6 @@ sub run {
 1;
 __END__
 
-# note: regexps taken from HSS
-
 =head1 NAME
 
 Plack::Server::AnyEvent - AnyEvent based HTTP server
@@ -195,6 +195,18 @@ Plack::Server::AnyEvent - AnyEvent based HTTP server
 
 =head1 DESCRIPTION
 
-This implementation is considered highly experimental.
+Plack::Server::AnyEvent is a Plack server implementation using
+AnyEvent. This server runs in a non-blocking event loop and suitable
+for event-driven web applications like streaming API servers.
+
+=head1 LICENSE
+
+This module is licensed under the same terms as Perl itself.
+
+=head1 AUTHOR
+
+Tokuhiro Matsuno
+
+Tatsuhiko Miyagawa
 
 =cut

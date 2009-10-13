@@ -25,6 +25,7 @@ MANIFEST			This list of files
 META.yml
 README
 t/00_compile.t
+t/anyevent.t
 xt/perlcritic.t
 xt/pod.t
 xt/podspell.t
