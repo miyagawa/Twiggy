@@ -1,4 +1,4 @@
-use inc::Module::Install;
+use inc::Module::Install 0.91;
 name 'Plack-Server-AnyEvent';
 all_from 'lib/Plack/Server/AnyEvent.pm';
 readme_from 'lib/Plack/Server/AnyEvent.pm';
@@ -6,7 +6,7 @@ requires 'AnyEvent';
 requires 'Plack::Util';
 requires 'HTTP::Status';
 requires 'Plack::Middleware::ContentLength';
-build_requires 'Test::More';
+test_requires 'Test::More';
 use_test_base;
 auto_include_deps;
 author_tests('xt');
