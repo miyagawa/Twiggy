@@ -141,6 +141,8 @@ sub _response_handler {
                 $self->_write_response($handle, $sock, $env, $res);
             });
 			return;
+        } elsif ( ref $res eq 'CODE' ) {
+            return $res->(sub { $self->_write_response($handle, $sock, $env, $_[0]) }, $handle, $sock);
         } else {
 			# FIXME error?
 			$self->_write_response($handle, $sock, $env, [ 204, [], [] ]);
