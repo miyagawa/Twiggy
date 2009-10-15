@@ -6,6 +6,8 @@ requires 'AnyEvent';
 requires 'Plack::Util';
 requires 'HTTP::Status';
 requires 'Plack::Middleware::ContentLength';
+requires 'Try::Tiny';
+requires 'namespace::clean';
 test_requires 'Test::More';
 use_test_base;
 auto_include_deps;
