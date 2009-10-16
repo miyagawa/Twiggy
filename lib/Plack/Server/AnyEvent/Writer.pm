@@ -5,8 +5,6 @@ use warnings;
 
 use AnyEvent::Handle;
 
-use namespace::clean;
-
 sub new {
     my ( $class, $socket ) = @_;
 
