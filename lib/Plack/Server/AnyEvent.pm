@@ -95,6 +95,7 @@ sub _handle_request {
                 'psgi.run_once'     => Plack::Util::FALSE,
                 'psgi.multithread'  => Plack::Util::FALSE,
                 'psgi.multiprocess' => Plack::Util::FALSE,
+                'psgi.streaming'    => Plack::Util::TRUE,
                 'psgi.input'        => $sock,
                 'REMOTE_ADDR'       => $peer_host,
             };
