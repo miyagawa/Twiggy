@@ -363,8 +363,9 @@ sub _write_body {
             my $ret = AE::cv;
 
             $handle->on_error(sub {
+                my $err = $_[2];
                 $handle->destroy;
-                $ret->send($_[2]);
+                $ret->send($err);
             });
 
             $handle->on_drain(sub {

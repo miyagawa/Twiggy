@@ -24,8 +24,9 @@ sub poll_cb {
 
         # notifies of client close
         $handle->on_error(sub {
+            my $err = $_[2];
             $handle->destroy;
-            $cb->(undef, $_[2]);
+            $cb->(undef, $err);
         });
     } else {
         $handle->on_drain;
