@@ -18,14 +18,19 @@ sub poll_cb {
 
     my $handle = $self->{handle};
 
-    # notifies that now is a good time to ->write
-    $handle->on_drain(sub { $cb->($self) });
-    
-    # notifies of client close
-    $handle->on_error(sub {
-        $handle->destroy;
-        $cb->(undef, $_[2]);
-    });
+    if ( $cb ) {
+        # notifies that now is a good time to ->write
+        $handle->on_drain(sub { $cb->($self) });
+
+        # notifies of client close
+        $handle->on_error(sub {
+            $handle->destroy;
+            $cb->(undef, $_[2]);
+        });
+    } else {
+        $handle->on_drain;
+        $handle->on_error;
+    }
 }
 
 sub write { $_[0]{handle}->push_write($_[1]) }
