@@ -32,8 +32,6 @@ use constant HAS_AIO => !$ENV{PLACK_NO_SENDFILE} && try {
 
 use Plack::Server::AnyEvent::Writer;
 
-use namespace::clean;
-
 sub new {
     my($class, @args) = @_;
 
