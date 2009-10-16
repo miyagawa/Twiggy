@@ -214,7 +214,6 @@ sub _run_app {
                     return $writer;
                 } else {
                     my ( $status, $headers, $body, $post ) = @$res;
-
                     my $cv = $self->_write_psgi_response($sock, [ $status, $headers, $body ]);
                     $cv->cb(sub { $post->() }) if $post;
                 }
@@ -349,7 +348,12 @@ sub _write_body {
 
         if ( ref $body eq 'ARRAY' ) {
             my $buf = join "", @$body;
-            return $self->_write_buf($sock, \$buf);
+            my $done = AE::cv;
+            $self->_write_buf($sock, \$buf)->cb(sub {
+                shutdown $sock, 1;
+                $done->send(1);
+            });
+            return $done;
         } else {
             # flush the output buffer, but not the input buffer
             {
