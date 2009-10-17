@@ -503,6 +503,8 @@ This module is licensed under the same terms as Perl itself.
 
 Tokuhiro Matsuno
 
+Yuval Kogman
+
 Tatsuhiko Miyagawa
 
 =cut
