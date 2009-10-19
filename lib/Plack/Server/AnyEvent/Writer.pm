@@ -20,7 +20,17 @@ sub poll_cb {
 
     if ( $cb ) {
         # notifies that now is a good time to ->write
-        $handle->on_drain(sub { $cb->($self) });
+        $handle->on_drain(sub {
+            do {
+                if ( $self->{in_poll_cb} ) {
+                    $self->{poll_again}++;
+                    return;
+                } else {
+                    local $self->{in_poll_cb} = 1;
+                    $cb->($self);
+                }
+            } while ( delete $self->{poll_again} );
+        });
 
         # notifies of client close
         $handle->on_error(sub {
