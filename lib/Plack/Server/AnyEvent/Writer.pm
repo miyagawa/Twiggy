@@ -8,9 +8,9 @@ use AnyEvent::Handle;
 use namespace::clean;
 
 sub new {
-    my ( $class, $socket ) = @_;
+    my ( $class, $socket, $exit ) = @_;
 
-    bless { handle => AnyEvent::Handle->new( fh => $socket ) }, $class;
+    bless { handle => AnyEvent::Handle->new( fh => $socket ), exit_guard => $exit }, $class;
 }
 
 sub poll_cb {
@@ -48,6 +48,8 @@ sub write { $_[0]{handle}->push_write($_[1]) }
 
 sub close {
     my $self = shift;
+
+    $self->{exit_guard}->end;
 
     my $handle = $self->{handle};
 

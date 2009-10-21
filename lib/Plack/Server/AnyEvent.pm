@@ -76,6 +76,8 @@ sub _accept_handler {
 
         return unless $sock;
 
+		$self->{exit_guard}->begin;
+
         if ( $self->{no_delay} ) {
             setsockopt($sock, IPPROTO_TCP, TCP_NODELAY, 1)
                 or die "setsockopt(TCP_NODELAY) failed:$!";
@@ -211,7 +213,7 @@ sub _run_app {
 
                     $self->_flush($sock);
 
-                    my $writer = Plack::Server::AnyEvent::Writer->new($sock);
+                    my $writer = Plack::Server::AnyEvent::Writer->new($sock, $self->{exit_guard});
 
                     my $buf = $self->_format_headers($status, $headers);
                     $writer->write($$buf);
@@ -235,32 +237,28 @@ sub _write_psgi_response {
     my ( $self, $sock, $res ) = @_;
 
     if ( ref $res eq 'ARRAY' ) {
-        return if scalar(@$res) == 0; # no response
+		if ( scalar @$res == 0 ) {
+			# no response
+			$self->{exit_guard}->end;
+			return;
+		}
 
         my ( $status, $headers, $body ) = @$res;
 
-        if ( defined wantarray ) {
-            my $cv = AE::cv;
+		my $cv = AE::cv;
 
-            $self->_write_headers( $sock, $status, $headers )->cb(sub {
-                local $@;
-                if ( eval { $_[0]->recv; 1 } ) {
-                    $self->_write_body($sock, $body)->cb(sub {
-                        local $@;
-                        eval { $cv->send($_[0]->recv); 1 } or $cv->croak($@);
-                    });
-                }
-            });
+		$self->_write_headers( $sock, $status, $headers )->cb(sub {
+			local $@;
+			if ( eval { $_[0]->recv; 1 } ) {
+				$self->_write_body($sock, $body)->cb(sub {
+					$self->{exit_guard}->end;
+					local $@;
+					eval { $cv->send($_[0]->recv); 1 } or $cv->croak($@);
+				});
+			}
+		});
 
-            return $cv;
-        } else {
-            $self->_write_headers( $sock, $status, $headers )->cb(sub {
-                local $@;
-                if ( eval { $_[0]->recv; 1 } ) {
-                    $self->_write_body($sock, $body);
-                }
-            });
-        }
+		return $cv;
     } else {
         no warnings 'uninitialized';
         warn "Unknown response type: $res";
@@ -485,7 +483,13 @@ sub _write_real_fh {
 sub run {
     my $self = shift;
     $self->register_service(@_);
-    AnyEvent->condvar->recv;
+
+    my $exit = $self->{exit_guard} = AnyEvent->condvar;
+	$exit->begin;
+
+	my $w; $w = AE::signal QUIT => sub { $exit->end; undef $w };
+
+	$exit->recv;
 }
 
 # ex: set sw=4 et:
