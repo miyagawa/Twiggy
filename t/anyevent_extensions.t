@@ -100,10 +100,11 @@ local @Plack::Test::Suite::TEST = (
 
                 my @queue = ( "Hello, ", $env->{QUERY_STRING} );
 
-                $write->([
+                my $w = $write->([
                     200,
-                    [ 'Content-Type' => 'text/plain', ],
-                ])->poll_cb(sub {
+                    [ 'Content-Type' => 'text/plain' ],
+                ]);
+                $w->poll_cb(sub {
                     my $writer = shift;
 
                     if ( @queue ) {

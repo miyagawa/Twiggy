@@ -20,13 +20,14 @@ inc/Test/Builder.pm
 inc/Test/Builder/Module.pm
 inc/Test/More.pm
 lib/Plack/Server/AnyEvent.pm
+lib/Plack/Server/AnyEvent/Writer.pm
 Makefile.PL
 MANIFEST			This list of files
 META.yml
 README
 t/00_compile.t
 t/anyevent.t
+t/anyevent_extensions.t
 xt/perlcritic.t
 xt/pod.t
 xt/podspell.t
-xt/synopsis.t

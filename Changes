@@ -1,4 +1,8 @@
 Revision history for Perl extension Plack::Server::AnyEvent
 
+0.02  Thu Oct 29 12:38:15 PDT 2009
+        - Support psgi.streaming and condvar response for delayed response (nothingmuch)
+        - Improved error handling, memory usage and performance by not using AnyEvent::Handle (nothingmuch)
+
 0.01  Mon Oct 12 23:31:52 2009
         - original version
