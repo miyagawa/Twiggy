@@ -2,7 +2,7 @@ package Plack::Server::AnyEvent;
 use strict;
 use warnings;
 use 5.008_001;
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 use Scalar::Util qw(blessed weaken);
 use Try::Tiny;
@@ -48,7 +48,7 @@ sub register_service {
     my($self, $app) = @_;
 
     $app = Plack::Middleware::ContentLength->wrap($app);
-    $app = Plack::Middleware::Chunked->wrap($app);
+#    $app = Plack::Middleware::Chunked->wrap($app);
 
     $self->{listen_guard} = $self->_create_tcp_server($app);
 }
