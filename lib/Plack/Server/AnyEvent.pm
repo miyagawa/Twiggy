@@ -56,9 +56,7 @@ sub register_service {
 sub _create_tcp_server {
     my ( $self, $app ) = @_;
 
-    return tcp_server $self->{host}, $self->{port}, sub {
-        $self->_handle_request($app, @_);
-    }, sub {
+    return tcp_server $self->{host}, $self->{port}, $self->_accept_handler($app), sub {
         my ( $fh, $host, $port ) = @_;
         $self->{prepared_host} = $host;
         $self->{prepared_port} = $port;
@@ -67,93 +65,97 @@ sub _create_tcp_server {
     };
 }
 
-sub _handle_request {
-    my ( $self, $app, $sock, $peer_host, $peer_port ) = @_;
+sub _accept_handler {
+    my ( $self, $app ) = @_;
 
-    return unless $sock;
+    return sub {
+        my ( $sock, $peer_host, $peer_port ) = @_;
 
-    if ( $self->{no_delay} ) {
-        setsockopt($sock, IPPROTO_TCP, TCP_NODELAY, 1)
-            or die "setsockopt(TCP_NODELAY) failed:$!";
-    }
+        return unless $sock;
 
-    my $try_read = $self->_create_header_reader($sock);
+		$self->{exit_guard}->begin;
 
-    my $try_parse = sub {
-        if ( my $headers = $try_read->() ) {
-            my $env = {
-                SERVER_PORT         => $self->{prepared_port},
-                SERVER_NAME         => $self->{prepared_host},
-                SCRIPT_NAME         => '',
-                'psgi.version'      => [ 1, 0 ],
-                'psgi.errors'       => *STDERR,
-                'psgi.url_scheme'   => 'http',
-                'psgi.nonblocking'  => Plack::Util::TRUE,
-                'psgi.run_once'     => Plack::Util::FALSE,
-                'psgi.multithread'  => Plack::Util::FALSE,
-                'psgi.multiprocess' => Plack::Util::FALSE,
-                'psgi.streaming'    => Plack::Util::TRUE,
-                'psgi.input'        => $sock,
-                'REMOTE_ADDR'       => $peer_host,
+        if ( $self->{no_delay} ) {
+            setsockopt($sock, IPPROTO_TCP, TCP_NODELAY, 1)
+                or die "setsockopt(TCP_NODELAY) failed:$!";
+        }
+
+        my $headers = "";
+
+        my $try_parse = sub {
+            if ( $self->_try_read_headers($sock, $headers) ) {
+                my $env = {
+                    SERVER_PORT         => $self->{prepared_port},
+                    SERVER_NAME         => $self->{prepared_host},
+                    SCRIPT_NAME         => '',
+                    'psgi.version'      => [ 1, 0 ],
+                    'psgi.errors'       => *STDERR,
+                    'psgi.url_scheme'   => 'http',
+                    'psgi.nonblocking'  => Plack::Util::TRUE,
+                    'psgi.streaming'    => Plack::Util::TRUE,
+                    'psgi.run_once'     => Plack::Util::FALSE,
+                    'psgi.multithread'  => Plack::Util::FALSE,
+                    'psgi.multiprocess' => Plack::Util::FALSE,
+                    'psgi.input'        => $sock,
+                    'REMOTE_ADDR'       => $peer_host,
+                };
+
+                my $reqlen = parse_http_request($headers, $env);
+
+                if ( $reqlen < 0 ) {
+                    die "bad request";
+                } else {
+                    return $env;
+                }
+            }
+
+            return;
+        };
+
+        local $@;
+        unless ( eval {
+            if ( my $env = $try_parse->() ) {
+                # the request data is already available, no need to parse more
+                $self->_run_app($app, $env, $sock);
+            } else {
+                # there's not yet enough data to parse the request,
+                # set up a watcher
+                $self->_create_req_parsing_watcher( $sock, $try_parse, $app );
             };
 
-            my $reqlen = parse_http_request($$headers, $env);
-
-            if ( $reqlen < 0 ) {
-                die "bad request";
-            } else {
-                return $env;
-            }
+            1;
+        }) {
+            $self->_bad_request($sock);
         }
-
-        return;
-    };
-
-    try {
-        if ( my $env = $try_parse->() ) {
-            # the request data is already available, no need to parse more
-            $self->_run_app($app, $env, $sock);
-        } else {
-            # there's not yet enough data to parse the request,
-            # set up a watcher
-            $self->_create_req_parsing_watcher( $sock, $try_parse, $app );
-        }
-    } catch {
-        $self->_bad_request($sock);
     };
 }
 
 # returns a closure that tries to parse
 # this is not a method because it needs a buffer per socket
-sub _create_header_reader {
-    my ( $self, $sock ) = @_;
-
-    my $headers = '';
+sub _try_read_headers {
+    my ( $self, $sock, undef ) = @_;
 
     # FIXME add a timer to manage read timeouts
+    local $/ = "\012";
 
-    return sub {
-        local $/ = "\012";
+    read_more: for my $headers ( $_[2] ) {
+        if ( defined(my $line = <$sock>) ) {
+            $headers .= $line;
 
-        read_more: {
-            if ( defined(my $line = <$sock>) ) {
-                $headers .= $line;
-
-                if ( $line eq "\015\012" or $line eq "\012" ) {
-                    # got an empty line, we're done reading the headers
-                    return \$headers;
-                } else {
-                    # try to read more lines using buffered IO
-                    redo read_more;
-                }
-            } elsif ($! and $! != EAGAIN && $! != EINTR && $! != WSAEWOULDBLOCK ) {
-                die $!;
+            if ( $line eq "\015\012" or $line eq "\012" ) {
+                # got an empty line, we're done reading the headers
+                return 1;
+            } else {
+                # try to read more lines using buffered IO
+                redo read_more;
             }
+        } elsif ($! and $! != EAGAIN && $! != EINTR && $! != WSAEWOULDBLOCK ) {
+            die $!;
         }
+    }
 
-        # did not read to end of req, wait for more data to arrive
-        return;
-    };
+    # did not read to end of req, wait for more data to arrive
+    return;
 }
 
 sub _create_req_parsing_watcher {
@@ -193,7 +195,9 @@ sub _run_app {
 
     my $res = Plack::Util::run_app $app, $env;
 
-    if ( blessed($res) and $res->isa("AnyEvent::CondVar") ) {
+    if ( ref $res eq 'ARRAY' ) {
+        $self->_write_psgi_response($sock, $res);
+    } elsif ( blessed($res) and $res->isa("AnyEvent::CondVar") ) {
         $res->cb(sub { $self->_write_psgi_response($sock, shift->recv) });
     } elsif ( ref $res eq 'CODE' ) {
         $res->(
@@ -205,7 +209,9 @@ sub _run_app {
                 } elsif ( @$res == 2 ) {
                     my ( $status, $headers ) = @$res;
 
-                    my $writer = Plack::Server::AnyEvent::Writer->new($sock);
+                    $self->_flush($sock);
+
+                    my $writer = Plack::Server::AnyEvent::Writer->new($sock, $self->{exit_guard});
 
                     my $buf = $self->_format_headers($status, $headers);
                     $writer->write($$buf);
@@ -220,7 +226,7 @@ sub _run_app {
             $sock,
         );
     } else {
-        $self->_write_psgi_response($sock, $res);
+        croak("Unknown response type: $res");
     }
 }
 
@@ -228,21 +234,28 @@ sub _write_psgi_response {
     my ( $self, $sock, $res ) = @_;
 
     if ( ref $res eq 'ARRAY' ) {
-        return if scalar(@$res) == 0; # no response
+		if ( scalar @$res == 0 ) {
+			# no response
+			$self->{exit_guard}->end;
+			return;
+		}
 
         my ( $status, $headers, $body ) = @$res;
 
-        my $cv = AE::cv;
+		my $cv = AE::cv;
 
-        $self->_write_headers( $sock, $status, $headers )->cb(sub {
-            try { shift->recv } catch { $cv->croak($_) };
-            $self->_write_body($sock, $body)->cb(sub {
-                try { shift->recv } catch { $cv->croak($_) };
-                $cv->send(1);
-            });
-        });
+		$self->_write_headers( $sock, $status, $headers )->cb(sub {
+			local $@;
+			if ( eval { $_[0]->recv; 1 } ) {
+				$self->_write_body($sock, $body)->cb(sub {
+					$self->{exit_guard}->end;
+					local $@;
+					eval { $cv->send($_[0]->recv); 1 } or $cv->croak($@);
+				});
+			}
+		});
 
-        return $cv;
+		return $cv;
     } else {
         no warnings 'uninitialized';
         warn "Unknown response type: $res";
@@ -274,29 +287,38 @@ sub _format_headers {
     return \$hdr;
 }
 
+# this flushes just the output buffer, not the input buffer (unlike
+# $handle->flush)
+sub _flush {
+	my ( $self, $sock ) = @_;
+
+    local $| = 1;
+    print $sock '';
+}
+
 # helper routine, similar to push write, but respects buffering, and refcounts
 # itself
 sub _write_buf {
     my($self, $socket, $data) = @_;
 
-    my $done = AE::cv;
-
-    Carp::cluck($data) unless ref $data;
-
-    my $length = length($$data);
-
-    # flush the output buffer, but not the input buffer
-    {
-        local $| = 1;
-        $socket->print('');
-    }
+    no warnings 'uninitialized';
 
     # try writing immediately
-    my $written = syswrite($socket, $$data, $length) || 0;
+    if ( (my $written = syswrite($socket, $$data)) < length($$data) ) {
+        my $done = defined(wantarray) && AE::cv;
 
-    if ( $written < $length ) {
-        # either the write failed or was incomplete, both cases are handled in
-        # the watcher
+        # either the write failed or was incomplete
+
+        if ( !defined($written) and $! != EAGAIN && $! != EINTR && $! != WSAEWOULDBLOCK) {
+            # a real write error occured, like EPIPE
+            $done->croak($!) if $done;
+            return $done;
+        }
+
+        # the write was either incomplete or a non fatal error occured, so we
+        # need to set up an IO watcher to wait until we can properly write
+
+        my $length = length($$data);
 
         my $write_watcher;
         $write_watcher = AE::io $socket, 1, sub {
@@ -308,31 +330,35 @@ sub _write_buf {
 
                     if ( $written == $length ) {
                         undef $write_watcher;
-                        $done->send(1);
+                        $done->send(1) if $done;
                     } else {
                         redo write_more;
                     }
                 } elsif ($! != EAGAIN && $! != EINTR && $! != WSAEWOULDBLOCK) {
+                    $done->croak($!) if $done;
                     undef $write_watcher;
-                    $done->croak($!);
                 }
             }
         };
-    } else {
-        $done->send(1);
-    }
 
-    return $done;
+        return $done;
+    } elsif ( defined wantarray ) {
+        my $done = AE::cv;
+        $done->send(1);
+        return $done;
+    }
 }
 
 sub _write_body {
     my ( $self, $sock, $body ) = @_;
 
-    if ( Plack::Util::is_real_fh($body) ) {
+    if ( ref $body eq 'ARRAY' ) {
+        my $buf = join "", @$body;
+        return $self->_write_buf($sock, \$buf);
+    } elsif ( Plack::Util::is_real_fh($body) ) {
         # real handles use nonblocking IO
         # either AIO or using watchers, with sendfile or with copying IO
         $self->_write_real_fh($sock, $body);
-
     } elsif ( blessed($body) and $body->can("string_ref") ) {
         # optimize IO::String to not use its incredibly slow getline
         if ( my $pos = $body->tell ) {
@@ -345,49 +371,34 @@ sub _write_body {
         # like Plack::Util::foreach, but nonblocking on the output
         # handle
 
-        if ( ref $body eq 'ARRAY' ) {
-            my $buf = join "", @$body;
-            my $done = AE::cv;
-            $self->_write_buf($sock, \$buf)->cb(sub {
-                shutdown $sock, 1;
-                $done->send(1);
-            });
-            return $done;
-        } else {
-            # flush the output buffer, but not the input buffer
-            {
-                local $| = 1;
-                $sock->print('');
-            }
+        my $handle = AnyEvent::Handle->new( fh => $sock );
 
-            my $handle = AnyEvent::Handle->new( fh => $sock );
+        my $ret = AE::cv;
 
-            my $ret = AE::cv;
+        $handle->on_error(sub {
+            my $err = $_[2];
+            $handle->destroy;
+            $ret->send($err);
+        });
 
-            $handle->on_error(sub {
+        $handle->on_drain(sub {
+            local $/ = \4096;
+            if ( defined( my $buf = $body->getline ) ) {
+                $handle->push_write($buf);
+            } elsif ( $! ) {
+                $ret->croak($!);
                 $handle->destroy;
-                $ret->send($_[2]);
-            });
-
-            $handle->on_drain(sub {
-                local $/ = \4096;
-                if ( defined( my $buf = $body->getline ) ) {
-                    $handle->push_write($buf);
-                } elsif ( $! ) {
-                    $ret->croak($!);
+            } else {
+                $body->close;
+                $handle->on_drain(sub {
+                    shutdown $handle->fh, 1;
                     $handle->destroy;
-                } else {
-                    $body->close;
-                    $handle->on_drain(sub {
-                        shutdown $handle->fh, 1;
-                        $handle->destroy;
-                        $ret->send(1);
-                    });
-                }
-            });
+                    $ret->send(1);
+                });
+            }
+        });
 
-            return $ret;
-        }
+        return $ret;
     }
 }
 
@@ -398,6 +409,7 @@ sub _write_body {
 # FIXME use len = 0 param to sendfile
 # FIXME use Sys::Sendfile in nonblocking mode if AIO is not available
 # FIXME test sendfile on non file backed handles
+# FIXME this is actually pretty broken on linux
 sub _write_real_fh {
     my ( $self, $sock, $body ) = @_;
 
@@ -468,7 +480,13 @@ sub _write_real_fh {
 sub run {
     my $self = shift;
     $self->register_service(@_);
-    AnyEvent->condvar->recv;
+
+    my $exit = $self->{exit_guard} = AnyEvent->condvar;
+	$exit->begin;
+
+	my $w; $w = AE::signal QUIT => sub { $exit->end; undef $w };
+
+	$exit->recv;
 }
 
 # ex: set sw=4 et:
