@@ -57,6 +57,7 @@ sub close {
 
     $handle->on_drain(sub {
         shutdown $_[0]->fh, 1;
+        $_[0]->destroy;
         undef $handle;
     });
 }
