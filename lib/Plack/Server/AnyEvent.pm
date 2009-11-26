@@ -60,7 +60,7 @@ sub _create_tcp_server {
         my ( $fh, $host, $port ) = @_;
         $self->{prepared_host} = $host;
         $self->{prepared_port} = $port;
-        warn "Accepting requests at http://$host:$port/\n";
+        warn ref($self), ": Accepting requests at http://$host:$port/\n";
         return 0;
     };
 }
