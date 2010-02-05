@@ -47,19 +47,21 @@ sub write { $_[0]{handle}->push_write($_[1]) }
 sub close {
     my $self = shift;
 
-    $self->{exit_guard}->end;
+    my $exit_guard = delete $self->{exit_guard};
+    $exit_guard->end if $exit_guard;
 
-    my $handle = $self->{handle};
+    my $handle = delete $self->{handle};
+    if ($handle) {
+        # kill poll_cb, but not $handle
+        $handle->on_drain;
+        $handle->on_error;
 
-    # kill poll_cb, but not $handle
-    $handle->on_drain;
-    $handle->on_error;
-
-    $handle->on_drain(sub {
-        shutdown $_[0]->fh, 1;
-        $_[0]->destroy;
-        undef $handle;
-    });
+        $handle->on_drain(sub {
+            shutdown $_[0]->fh, 1;
+            $_[0]->destroy;
+            undef $handle;
+        });
+    }
 }
 
 sub DESTROY { $_[0]->close }
