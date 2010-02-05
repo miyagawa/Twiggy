@@ -40,6 +40,7 @@ sub new {
         host => undef,
         port => undef,
         no_delay => 1,
+        timeout => 300,
         @args,
     }, $class;
 }
@@ -81,9 +82,14 @@ sub _accept_handler {
         }
 
         my $headers = "";
+        my $timeout_timer = AE::timer($self->{timeout}, 0, sub {
+            close $sock;
+        }) if $self->{timeout};
 
         my $try_parse = sub {
             if ( $self->_try_read_headers($sock, $headers) ) {
+                undef $timeout_timer;
+
                 my $env = {
                     SERVER_PORT         => $self->{prepared_port},
                     SERVER_NAME         => $self->{prepared_host},
@@ -135,6 +141,8 @@ sub _accept_handler {
 # this is not a method because it needs a buffer per socket
 sub _try_read_headers {
     my ( $self, $sock, undef ) = @_;
+
+    return unless defined fileno $sock;
 
     # FIXME add a timer to manage read timeouts
     local $/ = "\012";
