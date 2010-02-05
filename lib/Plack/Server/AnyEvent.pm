@@ -151,6 +151,8 @@ sub _try_read_headers {
             }
         } elsif ($! and $! != EAGAIN && $! != EINTR && $! != WSAEWOULDBLOCK ) {
             die $!;
+        } elsif (!$!) {
+            die "client disconnected";
         }
     }
 
