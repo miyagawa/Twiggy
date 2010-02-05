@@ -96,7 +96,8 @@ sub _accept_handler {
                     'psgi.run_once'     => Plack::Util::FALSE,
                     'psgi.multithread'  => Plack::Util::FALSE,
                     'psgi.multiprocess' => Plack::Util::FALSE,
-                    'psgi.input'        => $sock,
+                    'psgi.input'        => undef, # will be set by _run_app()
+                    'psgix.io'          => $sock,
                     'REMOTE_ADDR'       => $peer_host,
                 };
 
@@ -192,8 +193,61 @@ sub _bad_request {
     return;
 }
 
+sub _read_chunk {
+    my ($self, $sock, $remaining, $cb) = @_;
+
+    my $data = '';
+
+    my $read_cb; $read_cb = sub {
+        my $rlen = read($sock, $data, $remaining, length($data));
+
+        if (defined $rlen and $rlen > 0) {
+            $remaining -= $rlen;
+
+            if ($remaining <= 0) {
+                undef $read_cb;
+                $cb->($data);
+            }
+        } elsif (defined $rlen) {
+            undef $read_cb;
+            $cb->($data);
+        } elsif ($! and $! != EAGAIN && $! != EINTR && $! != WSAEWOULDBLOCK) {
+            die $!;
+        }
+    };
+
+    $read_cb->();
+
+    if ($read_cb) {
+        my $rw; $rw = AE::io($sock, 0, sub {
+            try {
+                $read_cb->();
+                undef $rw unless $read_cb;
+            } catch {
+                undef $rw;
+                $self->_bad_request($sock);
+            };
+        });
+    }
+}
+
 sub _run_app {
     my($self, $app, $env, $sock) = @_;
+
+    unless ($env->{'psgi.input'}) {
+        if ($env->{CONTENT_LENGTH} && $env->{REQUEST_METHOD} =~ /^(?:POST|PUT)$/) {
+            $self->_read_chunk($sock, $env->{CONTENT_LENGTH}, sub {
+                my ($data) = @_;
+                open my $input, '<', \$data;
+                $env->{'psgi.input'} = $input;
+                $self->_run_app($app, $env, $sock);
+            });
+            return;
+        } else {
+            open my $input, '<', \'';
+            $env->{'psgi.input'} = $input;
+        }
+    }
 
     my $res = Plack::Util::run_app $app, $env;
 
