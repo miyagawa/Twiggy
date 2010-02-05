@@ -371,38 +371,43 @@ sub _write_body {
             return $self->_write_buf($sock, $body->string_ref);
         }
     } else {
-        # like Plack::Util::foreach, but nonblocking on the output
-        # handle
-
-        my $handle = AnyEvent::Handle->new( fh => $sock );
-
-        my $ret = AE::cv;
-
-        $handle->on_error(sub {
-            my $err = $_[2];
-            $handle->destroy;
-            $ret->send($err);
-        });
-
-        $handle->on_drain(sub {
-            local $/ = \4096;
-            if ( defined( my $buf = $body->getline ) ) {
-                $handle->push_write($buf);
-            } elsif ( $! ) {
-                $ret->croak($!);
-                $handle->destroy;
-            } else {
-                $body->close;
-                $handle->on_drain(sub {
-                    shutdown $handle->fh, 1;
-                    $handle->destroy;
-                    $ret->send(1);
-                });
-            }
-        });
-
-        return $ret;
+        return $self->_write_fh($sock, $body);
     }
+}
+
+# like Plack::Util::foreach, but nonblocking on the output
+# handle
+sub _write_fh {
+    my ( $self, $sock, $body ) = @_;
+
+    my $handle = AnyEvent::Handle->new( fh => $sock );
+    my $ret = AE::cv;
+
+    $handle->on_error(sub {
+        my $err = $_[2];
+        $handle->destroy;
+        $ret->send($err);
+    });
+
+    no warnings 'recursion';
+    $handle->on_drain(sub {
+        local $/ = \4096;
+        if ( defined( my $buf = $body->getline ) ) {
+            $handle->push_write($buf);
+        } elsif ( $! ) {
+            $ret->croak($!);
+            $handle->destroy;
+        } else {
+            $body->close;
+            $handle->on_drain(sub {
+                shutdown $handle->fh, 1;
+                $handle->destroy;
+                $ret->send(1);
+            });
+        }
+    });
+
+    return $ret;
 }
 
 # when the body handle is a real filehandle we use this routine, which is more
@@ -412,7 +417,6 @@ sub _write_body {
 # FIXME use len = 0 param to sendfile
 # FIXME use Sys::Sendfile in nonblocking mode if AIO is not available
 # FIXME test sendfile on non file backed handles
-# FIXME this is actually pretty broken on linux
 sub _write_real_fh {
     my ( $self, $sock, $body ) = @_;
 
@@ -442,41 +446,7 @@ sub _write_real_fh {
         $sendfile->();
         return $cv;
     } else {
-        # $body is a real filehandle, so set up a watcher for it
-        # this is basically sendfile in userspace
-        my $sock_handle = AnyEvent::Handle->new( fh => $sock );
-        my $body_handle = AnyEvent::Handle->new( fh => $body );
-
-        my $cv = AE::cv;
-
-        my $err = sub {
-            $cv->croak($_[2]);
-
-            for ( $sock_handle, $body_handle ) {
-                $_->destroy;
-            }
-        };
-
-        $sock_handle->on_error($err);
-        $body_handle->on_error($err);
-
-        $body_handle->on_eof(sub {
-            $body_handle->destroy;
-            $sock_handle->on_drain(sub {
-                shutdown $sock_handle->fh, 1;
-                $sock_handle->destroy;
-                $cv->send(1);
-            });
-        });
-
-        $sock_handle->on_drain(sub {
-            $body_handle->push_read(sub {
-                $sock_handle->push_write($_[0]{rbuf});
-                $_[0]{rbuf} = '';
-            });
-        });
-
-        return $cv;
+        return $self->_write_fh($sock, $body);
     }
 }
 
