@@ -22,9 +22,6 @@ use HTTP::Status;
 use Plack::HTTPParser qw(parse_http_request);
 use Plack::Util;
 
-use Plack::Middleware::ContentLength;
-use Plack::Middleware::Chunked;
-
 use constant HAS_AIO => !$ENV{PLACK_NO_SENDFILE} && try {
     require AnyEvent::AIO;
     require IO::AIO;
@@ -47,10 +44,6 @@ sub new {
 
 sub register_service {
     my($self, $app) = @_;
-
-    $app = Plack::Middleware::ContentLength->wrap($app);
-#    $app = Plack::Middleware::Chunked->wrap($app);
-
     $self->{listen_guard} = $self->_create_tcp_server($app);
 }
 
