@@ -658,12 +658,12 @@ late 2009.
 Because it is like L<Thin|http://code.macournoyer.com/thin/>, Ruby's
 Rack web server using EventMachine. You know, Twiggy is thin :)
 
-=head2 Why the cute name instead of being more descriptive namespace? Are you on drugs?
+=head2 Why the cute name instead of more descriptive namespace? Are you on drugs?
 
 Maybe I am on drugs with all those Ruby cute names but I'm sick of
 naming software like
 HTTP::Server::PSGI::How::Its::Written::With::What::Module and people
-call it HSSPHIWWWM on IRC, and newbies would ask questinos what they
+call it HSSPHIWWWM on IRC, and newbies would ask questions what they
 stand for every day. That's crazy.
 
 This module actually includes the longer alias
