@@ -1,4 +1,4 @@
-package Plack::Server::AnyEvent;
+package AnyEvent::Server::PSGI::Twiggy;
 use strict;
 use warnings;
 use 5.008_001;
@@ -18,8 +18,7 @@ use AnyEvent::Socket;
 use AnyEvent::Util qw(WSAEWOULDBLOCK);
 
 use HTTP::Status;
-
-use Plack::HTTPParser qw(parse_http_request);
+use HTTP::Parser::XS qw(parse_http_request);
 use Plack::Util;
 
 use constant HAS_AIO => !$ENV{PLACK_NO_SENDFILE} && try {
@@ -28,7 +27,7 @@ use constant HAS_AIO => !$ENV{PLACK_NO_SENDFILE} && try {
     1;
 };
 
-use Plack::Server::AnyEvent::Writer;
+open my $null_io, '<', \'';
 
 sub new {
     my($class, @args) = @_;
@@ -54,7 +53,11 @@ sub _create_tcp_server {
         my ( $fh, $host, $port ) = @_;
         $self->{prepared_host} = $host;
         $self->{prepared_port} = $port;
-        warn ref($self), ": Accepting requests at http://$host:$port/\n";
+        $self->{server_ready}->({
+            host => $host,
+            port => $port,
+            server_software => 'Twiggy',
+        }) if $self->{server_ready};
         return 0;
     };
 }
@@ -87,6 +90,7 @@ sub _accept_handler {
                     SERVER_PORT         => $self->{prepared_port},
                     SERVER_NAME         => $self->{prepared_host},
                     SCRIPT_NAME         => '',
+                    REMOTE_ADDR         => $peer_host,
                     'psgi.version'      => [ 1, 0 ],
                     'psgi.errors'       => *STDERR,
                     'psgi.url_scheme'   => 'http',
@@ -97,7 +101,7 @@ sub _accept_handler {
                     'psgi.multiprocess' => Plack::Util::FALSE,
                     'psgi.input'        => undef, # will be set by _run_app()
                     'psgix.io'          => $sock,
-                    'REMOTE_ADDR'       => $peer_host,
+                    'psgix.input.buffered' => Plack::Util::TRUE,
                 };
 
                 my $reqlen = parse_http_request($headers, $env);
@@ -245,8 +249,7 @@ sub _run_app {
             });
             return;
         } else {
-            open my $input, '<', \'';
-            $env->{'psgi.input'} = $input;
+            $env->{'psgi.input'} = $null_io;
         }
     }
 
@@ -268,7 +271,7 @@ sub _run_app {
 
                     $self->_flush($sock);
 
-                    my $writer = Plack::Server::AnyEvent::Writer->new($sock, $self->{exit_guard});
+                    my $writer = AnyEvent::Server::PSGI::Twiggy::Writer->new($sock, $self->{exit_guard});
 
                     my $buf = $self->_format_headers($status, $headers);
                     $writer->write($$buf);
@@ -509,36 +512,131 @@ sub run {
     my $self = shift;
     $self->register_service(@_);
 
-    my $exit = $self->{exit_guard} = AnyEvent->condvar;
-	$exit->begin;
+    my $exit = $self->{exit_guard} = AE::cv;
+    $exit->begin;
 
-	my $w; $w = AE::signal QUIT => sub { $exit->end; undef $w };
-
-	$exit->recv;
+    my $w; $w = AE::signal QUIT => sub { $exit->end; undef $w };
+    $exit->recv;
 }
 
-# ex: set sw=4 et:
+package AnyEvent::Server::PSGI::Twiggy::Writer;
+use AnyEvent::Handle;
+
+sub new {
+    my ( $class, $socket, $exit ) = @_;
+
+    bless { handle => AnyEvent::Handle->new( fh => $socket ), exit_guard => $exit }, $class;
+}
+
+sub poll_cb {
+    my ( $self, $cb ) = @_;
+
+    my $handle = $self->{handle};
+
+    if ( $cb ) {
+        # notifies that now is a good time to ->write
+        $handle->on_drain(sub {
+            do {
+                if ( $self->{in_poll_cb} ) {
+                    $self->{poll_again}++;
+                    return;
+                } else {
+                    local $self->{in_poll_cb} = 1;
+                    $cb->($self);
+                }
+            } while ( delete $self->{poll_again} );
+        });
+
+        # notifies of client close
+        $handle->on_error(sub {
+            my $err = $_[2];
+            $handle->destroy;
+            $cb->(undef, $err);
+        });
+    } else {
+        $handle->on_drain;
+        $handle->on_error;
+    }
+}
+
+sub write { $_[0]{handle}->push_write($_[1]) }
+
+sub close {
+    my $self = shift;
+
+    my $exit_guard = delete $self->{exit_guard};
+    $exit_guard->end if $exit_guard;
+
+    my $handle = delete $self->{handle};
+    if ($handle) {
+        # kill poll_cb, but not $handle
+        $handle->on_drain;
+        $handle->on_error;
+
+        $handle->on_drain(sub {
+            shutdown $_[0]->fh, 1;
+            $_[0]->destroy;
+            undef $handle;
+        });
+    }
+}
+
+sub DESTROY { $_[0]->close }
+
+package AnyEvent::Server::PSGI::Twiggy;
 
 1;
 __END__
 
 =head1 NAME
 
-Plack::Server::AnyEvent - AnyEvent based HTTP server
+AnyEvent::Server::PSGI::Twiggy - AnyEvent HTTP server for PSGI (like Thin)
 
 =head1 SYNOPSIS
 
-  my $server = Plack::Server::AnyEvent->new(
+  use AnyEvent::Server::PSGI::Twiggy;
+
+  my $server = AnyEvent::Server::PSGI::Twiggy->new(
       host => $host,
       port => $port,
   );
-  $server->run($app);
+  $server->register_service($app);
+
+  AE::cv->recv;
 
 =head1 DESCRIPTION
 
-Plack::Server::AnyEvent is a Plack server implementation using
-AnyEvent. This server runs in a non-blocking event loop and suitable
-for event-driven web applications like streaming API servers.
+AnyEvent::Server::PSGI::Twiggy is a lightweight and fast HTTP server
+with unique features such as:
+
+=over 4
+
+=item PSGI
+
+Can run any PSGI applications. Fully supports I<psgi.nonblocking> and
+I<psgi.streaming> interfaces.
+
+=item AnyEvent
+
+This server uses AnyEvent and runs in a non-blocking event loop, so
+it's best to run event-driven web applications that runs I/O bound
+jobs or delayed responses such as long-poll, WebSocket or streaming
+content (server push).
+
+=item Fast header parser
+
+Uses XS/C based HTTP header parser for the best performance.
+
+=item Lightweight and Fast
+
+The memory required to run twiggy is 6MB and it can serve more than
+4000 req/s with a single process on Perl 5.10 with MacBook Pro 13"
+late 2009.
+
+=head1 TWIGGY?
+
+Because it is like L<Thin|http://code.macournoyer.com/thin/>, Ruby's
+Rack web server using EventMachine.
 
 =head1 LICENSE
 
@@ -546,10 +644,16 @@ This module is licensed under the same terms as Perl itself.
 
 =head1 AUTHOR
 
+Tatsuhiko Miyagawa
+
 Tokuhiro Matsuno
 
 Yuval Kogman
 
-Tatsuhiko Miyagawa
+Hideki Yamamura
+
+=head1 SEE ALSO
+
+L<Plack> L<AnyEvent> L<Tatsumaki>
 
 =cut

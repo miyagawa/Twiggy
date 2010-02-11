@@ -35,7 +35,7 @@ test_tcp(
     },
     server => sub {
         my $port = shift;
-        my $server = Plack::Loader->load('AnyEvent', port => $port, host => '127.0.0.1');
+        my $server = Plack::Loader->load('Twiggy', port => $port, host => '127.0.0.1');
         $server->run($app);
     },
 );

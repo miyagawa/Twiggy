@@ -7,5 +7,5 @@ use Test::Requires qw(AnyEvent HTTP::Parser::XS);
 use Plack;
 use Plack::Test::Suite;
 
-Plack::Test::Suite->run_server_tests('AnyEvent');
+Plack::Test::Suite->run_server_tests('Twiggy');
 done_testing();

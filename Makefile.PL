@@ -1,12 +1,14 @@
 use inc::Module::Install 0.91;
-name 'Plack-Server-AnyEvent';
-all_from 'lib/Plack/Server/AnyEvent.pm';
-readme_from 'lib/Plack/Server/AnyEvent.pm';
+name 'Twiggy';
+all_from 'lib/AnyEvent/Server/PSGI/Twiggy.pm';
+readme_from 'lib/AnyEvent/Server/PSGI/Twiggy.pm';
 requires 'AnyEvent';
 requires 'Plack::Util';
 requires 'HTTP::Status';
-requires 'Plack::Middleware::ContentLength';
 requires 'Try::Tiny';
+requires 'HTTP::Parser::XS';
+recommends 'EV';
+install_script 'bin/twiggy';
 test_requires 'Test::More';
 use_test_base;
 auto_include_deps;

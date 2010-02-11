@@ -1,11 +1,8 @@
 use strict;
 use warnings;
-use FindBin;
 use Test::More;
-use Test::Requires qw(AnyEvent HTTP::Parser::XS);
-
-use Plack;
 use Plack::Test::Suite;
+use AnyEvent;
 
 use HTTP::Request;
 use HTTP::Request::Common;
@@ -121,7 +118,7 @@ local @Plack::Test::Suite::TEST = (
 # prevent Lint middleware from being used
 Plack::Test::Suite->run_server_tests(sub {
     my($port, $app) = @_;
-    my $server = Plack::Loader->load("AnyEvent", port => $port, host => "127.0.0.1");
+    my $server = Plack::Loader->load("Twiggy", port => $port, host => "127.0.0.1");
     $server->run($app);
 });
 

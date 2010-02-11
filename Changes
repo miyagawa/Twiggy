@@ -1,4 +1,4 @@
-Revision history for Perl extension Plack::Server::AnyEvent
+Revision history for Perl extension AnyEvent::Server::PSGI::Twiggy
 
 0.03  Wed Nov 11 21:33:16 PST 2009
         - Merged nothingmuch's fork to make the socket handling much faster (twice as fast!)

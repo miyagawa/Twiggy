@@ -1,25 +1,62 @@
 NAME
-    Plack::Server::AnyEvent - AnyEvent based HTTP server
+    AnyEvent::Server::PSGI::Twiggy - AnyEvent HTTP server for PSGI (like
+    Thin)
 
 SYNOPSIS
-      my $server = Plack::Server::AnyEvent->new(
+      use AnyEvent::Server::PSGI::Twiggy;
+
+      my $server = AnyEvent::Server::PSGI::Twiggy->new(
           host => $host,
           port => $port,
       );
-      $server->run($app);
+      $server->register_service($app);
+
+      AE::cv->recv;
 
 DESCRIPTION
-    Plack::Server::AnyEvent is a Plack server implementation using AnyEvent.
-    This server runs in a non-blocking event loop and suitable for
-    event-driven web applications like streaming API servers.
+    AnyEvent::Server::PSGI::Twiggy is a lightweight and fast HTTP server
+    with unique features such as:
+
+    PSGI
+        Can run any PSGI applications. Fully supports *psgi.nonblocking* and
+        *psgi.streaming* interfaces.
+
+    AnyEvent
+        This server uses AnyEvent and runs in a non-blocking event loop, so
+        it's best to run event-driven web applications that runs I/O bound
+        jobs or delayed responses such as long-poll, WebSocket or streaming
+        content (server push).
+
+    Fast header parser
+        Uses XS/C based HTTP header parser for the best performance.
+
+    Lightweight and Fast
+        The memory required to run twiggy is 6MB and it can serve more than
+        4000 req/s with a single process on Perl 5.10 with MacBook Pro 13"
+        late 2009.
+
+TWIGGY?
+    Because it is like <Thin>, Ruby's Rack web server using EventMachine.
 
 LICENSE
     This module is licensed under the same terms as Perl itself.
 
 AUTHOR
+    Tatsuhiko Miyagawa
+
     Tokuhiro Matsuno
 
     Yuval Kogman
 
-    Tatsuhiko Miyagawa
+    Hideki Yamamura
+
+SEE ALSO
+    Plack AnyEvent Tatsumaki
+
+POD ERRORS
+    Hey! The above document had some coding errors, which are explained
+    below:
+
+    Around line 636:
+        You forgot a '=back' before '=head1'
 
