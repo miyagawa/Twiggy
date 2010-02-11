@@ -633,6 +633,8 @@ The memory required to run twiggy is 6MB and it can serve more than
 4000 req/s with a single process on Perl 5.10 with MacBook Pro 13"
 late 2009.
 
+=back
+
 =head1 TWIGGY?
 
 Because it is like L<Thin|http://code.macournoyer.com/thin/>, Ruby's
