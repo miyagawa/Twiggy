@@ -58,7 +58,9 @@ my $app = sub {
                 "WebSocket-Location: ws://$env->{HTTP_HOST}$env->{SCRIPT_NAME}$env->{PATH_INFO}",
                 '', '';
 
-            my $fh = $env->{'psgix.io'} or die "This server does not support psgix.io extension";
+            my $fh = $env->{'psgix.io'}
+                or return $respond->([ 501, [ "Content-Type", "text/plain" ], [ "This server does not support psgix.io extension" ] ]);
+
             my $h = AnyEvent::Handle->new( fh => $fh );
             $h->on_error(sub {
                 warn 'err: ', $_[2];
