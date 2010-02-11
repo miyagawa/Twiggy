@@ -43,7 +43,7 @@ sub new {
 sub register_service {
     my($self, $app) = @_;
 
-    my @listen = @{$self->{listen} || [ "$self->{host}:$self->{port}" ]};
+    my @listen = @{$self->{listen} || [ ($self->{host} || '') . ":$self->{port}" ]};
     for my $listen (@listen) {
         push @{$self->{listen_guards}}, $self->_create_tcp_server($listen, $app);
     }
