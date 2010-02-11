@@ -1,6 +1,6 @@
 package Plack::Handler::Twiggy;
 use strict;
-use parent qw( AnyEvent::Server::PSGI::Twiggy );
+use parent qw( Twiggy );
 
 1;
 

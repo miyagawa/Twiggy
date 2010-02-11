@@ -1,4 +1,4 @@
-package AnyEvent::Server::PSGI::Twiggy;
+package Twiggy;
 use strict;
 use warnings;
 use 5.008_001;
@@ -287,7 +287,7 @@ sub _run_app {
 
                     $self->_flush($sock);
 
-                    my $writer = AnyEvent::Server::PSGI::Twiggy::Writer->new($sock, $self->{exit_guard});
+                    my $writer = Twiggy::Writer->new($sock, $self->{exit_guard});
 
                     my $buf = $self->_format_headers($status, $headers);
                     $writer->write($$buf);
@@ -535,7 +535,7 @@ sub run {
     $exit->recv;
 }
 
-package AnyEvent::Server::PSGI::Twiggy::Writer;
+package Twiggy::Writer;
 use AnyEvent::Handle;
 
 sub new {
@@ -599,20 +599,20 @@ sub close {
 
 sub DESTROY { $_[0]->close }
 
-package AnyEvent::Server::PSGI::Twiggy;
+package Twiggy;
 
 1;
 __END__
 
 =head1 NAME
 
-AnyEvent::Server::PSGI::Twiggy - AnyEvent HTTP server for PSGI (like Thin)
+Twiggy - AnyEvent HTTP server for PSGI (like Thin)
 
 =head1 SYNOPSIS
 
-  use AnyEvent::Server::PSGI::Twiggy;
+  use Twiggy;
 
-  my $server = AnyEvent::Server::PSGI::Twiggy->new(
+  my $server = Twiggy->new(
       host => $host,
       port => $port,
   );
@@ -622,7 +622,7 @@ AnyEvent::Server::PSGI::Twiggy - AnyEvent HTTP server for PSGI (like Thin)
 
 =head1 DESCRIPTION
 
-AnyEvent::Server::PSGI::Twiggy is a lightweight and fast HTTP server
+Twiggy is a lightweight and fast HTTP server
 with unique features such as:
 
 =over 4
@@ -651,10 +651,25 @@ late 2009.
 
 =back
 
-=head1 TWIGGY?
+=head1 NAMING
+
+=head2 Twiggy?
 
 Because it is like L<Thin|http://code.macournoyer.com/thin/>, Ruby's
-Rack web server using EventMachine.
+Rack web server using EventMachine. You know, Twiggy is thin :)
+
+=head2 Why the cute name instead of being more descriptive namespace? Are you on drugs?
+
+Maybe I am on drugs with all those Ruby cute names but I'm sick of
+naming software like
+HTTP::Server::PSGI::How::Its::Written::With::What::Module and people
+call it HSSPHIWWWM on IRC, and newbies would ask questinos what they
+stand for every day. That's crazy.
+
+This module actually includes the longer alias
+L<AnyEvent::Server::PSGI> for those who like to type more ::'s. It
+would actually help you find this software by searching for I<PSGI
+Server AnyEvent> on CPAN, which i believe is a good thing.
 
 =head1 LICENSE
 

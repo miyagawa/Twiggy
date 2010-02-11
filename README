@@ -1,11 +1,10 @@
 NAME
-    AnyEvent::Server::PSGI::Twiggy - AnyEvent HTTP server for PSGI (like
-    Thin)
+    Twiggy - AnyEvent HTTP server for PSGI (like Thin)
 
 SYNOPSIS
-      use AnyEvent::Server::PSGI::Twiggy;
+      use Twiggy;
 
-      my $server = AnyEvent::Server::PSGI::Twiggy->new(
+      my $server = Twiggy->new(
           host => $host,
           port => $port,
       );
@@ -14,8 +13,8 @@ SYNOPSIS
       AE::cv->recv;
 
 DESCRIPTION
-    AnyEvent::Server::PSGI::Twiggy is a lightweight and fast HTTP server
-    with unique features such as:
+    Twiggy is a lightweight and fast HTTP server with unique features such
+    as:
 
     PSGI
         Can run any PSGI applications. Fully supports *psgi.nonblocking* and
@@ -35,8 +34,22 @@ DESCRIPTION
         4000 req/s with a single process on Perl 5.10 with MacBook Pro 13"
         late 2009.
 
-TWIGGY?
+NAMING
+  Twiggy?
     Because it is like <Thin>, Ruby's Rack web server using EventMachine.
+    You know, Twiggy is thin :)
+
+  Why the cute name instead of being more descriptive namespace? Are you on drugs?
+    Maybe I am on drugs with all those Ruby cute names but I'm sick of
+    naming software like
+    HTTP::Server::PSGI::How::Its::Written::With::What::Module and people
+    call it HSSPHIWWWM on IRC, and newbies would ask questinos what they
+    stand for every day. That's crazy.
+
+    This module actually includes the longer alias AnyEvent::Server::PSGI
+    for those who like to type more ::'s. It would actually help you find
+    this software by searching for *PSGI Server AnyEvent* on CPAN, which i
+    believe is a good thing.
 
 LICENSE
     This module is licensed under the same terms as Perl itself.

@@ -1,7 +1,7 @@
 use inc::Module::Install 0.91;
 name 'Twiggy';
-all_from 'lib/AnyEvent/Server/PSGI/Twiggy.pm';
-readme_from 'lib/AnyEvent/Server/PSGI/Twiggy.pm';
+all_from 'lib/Twiggy.pm';
+readme_from 'lib/Twiggy.pm';
 requires 'AnyEvent';
 requires 'Plack::Util';
 requires 'HTTP::Status';

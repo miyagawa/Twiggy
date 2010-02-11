@@ -21,6 +21,6 @@ Run C<plackup -h> for more options.
 
 =head1 SEE ALSO
 
-L<AnyEvent::Server::PSGI::Twiggy>
+L<Twiggy>
 
 =cut

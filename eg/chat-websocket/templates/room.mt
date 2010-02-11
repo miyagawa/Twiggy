@@ -122,7 +122,7 @@ Something to say: <input id="chat" type="text" size="48"/>
 <table id="messages">
 </table>
 
-<div id="footer">Powered by <a href="http://github.com/miyagawa/Twiggy">Twiggy/<?= $AnyEvent::Server::PSGI::Twiggy::VERSION ?></a>.</div>
+<div id="footer">Powered by <a href="http://github.com/miyagawa/Twiggy">Twiggy/<?= $Twiggy::VERSION ?></a>.</div>
 
 </div>
 </body>
