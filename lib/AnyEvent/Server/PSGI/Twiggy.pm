@@ -21,6 +21,7 @@ use HTTP::Status;
 use HTTP::Parser::XS qw(parse_http_request);
 use Plack::Util;
 
+use constant DEBUG => $ENV{TWIGGY_DEBUG};
 use constant HAS_AIO => !$ENV{PLACK_NO_SENDFILE} && try {
     require AnyEvent::AIO;
     require IO::AIO;
@@ -33,8 +34,6 @@ sub new {
     my($class, @args) = @_;
 
     return bless {
-        host => undef,
-        port => undef,
         no_delay => 1,
         timeout => 300,
         @args,
@@ -43,14 +42,29 @@ sub new {
 
 sub register_service {
     my($self, $app) = @_;
-    $self->{listen_guard} = $self->_create_tcp_server($app);
+
+    my @listen = @{$self->{listen} || [ "$self->{host}:$self->{port}" ]};
+    for my $listen (@listen) {
+        push @{$self->{listen_guards}}, $self->_create_tcp_server($listen, $app);
+    }
 }
 
 sub _create_tcp_server {
-    my ( $self, $app ) = @_;
+    my ( $self, $listen, $app ) = @_;
 
-    return tcp_server $self->{host}, $self->{port}, $self->_accept_handler($app), sub {
+    my($host, $port, $is_tcp);
+    if ($listen =~ /:\d+$/) {
+        ($host, $port) = split /:/, $listen;
+        $host = undef if $host eq '';
+        $is_tcp = 1;
+    } else {
+        $host = "unix/";
+        $port = $listen;
+    }
+
+    return tcp_server $host, $port, $self->_accept_handler($app, $is_tcp), sub {
         my ( $fh, $host, $port ) = @_;
+        DEBUG && warn "Listening on $host:$port\n";
         $self->{prepared_host} = $host;
         $self->{prepared_port} = $port;
         $self->{server_ready}->({
@@ -63,22 +77,23 @@ sub _create_tcp_server {
 }
 
 sub _accept_handler {
-    my ( $self, $app ) = @_;
+    my ( $self, $app, $is_tcp ) = @_;
 
     return sub {
         my ( $sock, $peer_host, $peer_port ) = @_;
 
+        DEBUG && warn "$sock Accepted connection from $peer_host:$peer_port\n";
         return unless $sock;
+        $self->{exit_guard}->begin;
 
-		$self->{exit_guard}->begin;
-
-        if ( $self->{no_delay} ) {
+        if ( $is_tcp && $self->{no_delay} ) {
             setsockopt($sock, IPPROTO_TCP, TCP_NODELAY, 1)
                 or die "setsockopt(TCP_NODELAY) failed:$!";
         }
 
         my $headers = "";
         my $timeout_timer = AE::timer($self->{timeout}, 0, sub {
+            DEBUG && warn "$sock Timeout $peer_host:$peer_port\n";
             close $sock;
         }) if $self->{timeout};
 
@@ -105,6 +120,7 @@ sub _accept_handler {
                 };
 
                 my $reqlen = parse_http_request($headers, $env);
+                DEBUG && warn "$sock Parsed HTTP headers: request length=$reqlen\n";
 
                 if ( $reqlen < 0 ) {
                     die "bad request";
@@ -162,7 +178,7 @@ sub _try_read_headers {
         }
     }
 
-    # did not read to end of req, wait for more data to arrive
+    DEBUG && warn "$sock did not read to end of req, wait for more data to arrive\n";
     return;
 }
 
