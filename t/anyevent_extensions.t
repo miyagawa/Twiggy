@@ -80,39 +80,6 @@ local @Plack::Test::Suite::TEST = (
             }
         },
     ],
-    [
-        'coderef poll_cb',
-        sub {
-            my $cb = shift;
-            my $res = $cb->(GET "http://127.0.0.1/?name=miyagawa");
-            is $res->code, 200;
-            is $res->header('content_type'), 'text/plain';
-            is $res->content, 'Hello, name=miyagawa';
-        },
-        sub {
-            my $env = shift;
-
-            return sub {
-                my ( $write, $sock ) = @_;
-
-                my @queue = ( "Hello, ", $env->{QUERY_STRING} );
-
-                my $w = $write->([
-                    200,
-                    [ 'Content-Type' => 'text/plain' ],
-                ]);
-                $w->poll_cb(sub {
-                    my $writer = shift;
-
-                    if ( @queue ) {
-                        $writer->write(shift @queue);
-                    } else {
-                        $writer->close;
-                    }
-                });
-            };
-        },
-    ]
 );
 
 # prevent Lint middleware from being used
