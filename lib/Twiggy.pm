@@ -72,7 +72,8 @@ sub _create_tcp_server {
             port => $port,
             server_software => 'Twiggy',
         }) if $self->{server_ready};
-        return 0;
+
+        return $self->{backlog} || 0;
     };
 }
 
