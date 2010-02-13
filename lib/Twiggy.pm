@@ -578,6 +578,10 @@ Twiggy - AnyEvent HTTP server for PSGI (like Thin)
 
 =head1 SYNOPSIS
 
+  twiggy --listen :8080
+
+See C<twiggey -h> for more details.
+
   use Twiggy;
 
   my $server = Twiggy->new(
