@@ -37,7 +37,7 @@ Plack::Handler::Twiggy - Adapter for Twiggy
 
 This is an adapter to run PSGI apps on Twiggy via L<plackup>.
 
-=hea1 SEE ALSO
+=head1 SEE ALSO
 
 L<plackup>
 
