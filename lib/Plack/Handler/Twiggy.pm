@@ -30,6 +30,9 @@ Plack::Handler::Twiggy - Adapter for Twiggy
 
   plackup -s Twiggy --port 9090
 
+  # with start_server
+  start_server --port=9090 plackup -s Twiggy 
+
 =head1 DESCRIPTION
 
 This is an adapter to run PSGI apps on Twiggy via L<plackup>.
