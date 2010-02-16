@@ -3,7 +3,7 @@ use strict;
 use lib "lib";
 use Plack::Runner;
 
-my $runner = Plack::Runner->new(server => 'Twiggy', env => 'production');
+my $runner = Plack::Runner->new(server => 'Twiggy', env => 'deployment');
 $runner->parse_options(@ARGV);
 $runner->run;
 
