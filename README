@@ -2,9 +2,13 @@ NAME
     Twiggy - AnyEvent HTTP server for PSGI (like Thin)
 
 SYNOPSIS
-      use Twiggy;
+      twiggy --listen :8080
 
-      my $server = Twiggy->new(
+    See "twiggey -h" for more details.
+
+      use Twiggy::Server;
+
+      my $server = Twiggy::Server->new(
           host => $host,
           port => $port,
       );
@@ -25,6 +29,9 @@ DESCRIPTION
         it's best to run event-driven web applications that runs I/O bound
         jobs or delayed responses such as long-poll, WebSocket or streaming
         content (server push).
+
+        This software used to be called Plack::Server::AnyEvent but was
+        renamed to Twiggy. See "NAMING" for details.
 
     Fast header parser
         Uses XS/C based HTTP header parser for the best performance.

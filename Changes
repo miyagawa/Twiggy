@@ -1,5 +1,15 @@
 Revision history for Perl extension Twiggy
 
+0.1000 Mon Feb 15 17:56:33 PST 2010
+        - Renamed the distribution to Twiggy
+        - Fixed a busyloop bug (hidekiy)
+        - Fixed write_real_fh for linux (hidekiy)
+        - Reverted the psgi.input to buffer the POST body
+        - Dropped ContentLength middleware
+        - Support listening on multiple sockets and UNIX sockets
+        - Implemented psgix.io and psgix.input.buffered
+        - Removed undocumented poll_cb on writer
+
 0.03  Wed Nov 11 21:33:16 PST 2009
         - Merged nothingmuch's fork to make the socket handling much faster (twice as fast!)
         - Fixed poll_cb and writer shutdown
