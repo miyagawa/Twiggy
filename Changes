@@ -1,5 +1,8 @@
 Revision history for Perl extension Twiggy
 
+0.1002 Mon Feb 15 19:54:08 PST 2010
+        - Skip the test if Server::Starter is not installed
+
 0.1001 Mon Feb 15 19:51:34 PST 2010
         - Destroy listen guards when it shuts down (lestrrat)
         - Support Server::Starter (lestrrat)

@@ -1,5 +1,6 @@
 use strict;
 use Test::More;
+use Test::Requires qw(Server::Starter);
 use Test::TCP;
 use LWP::UserAgent;
 use Server::Starter qw(start_server);
