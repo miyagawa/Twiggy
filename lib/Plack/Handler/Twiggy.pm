@@ -1,6 +1,22 @@
 package Plack::Handler::Twiggy;
 use strict;
-use parent qw( Twiggy::Server );
+
+sub new {
+    my $class = shift;
+    bless {@_}, $class;
+}
+
+sub run {
+    my ($self, $app) = @_;
+
+    my $class = $ENV{SERVER_STARTER_PORT} ?
+        'Twiggy::Server::SS' : 'Twiggy::Server';
+    eval "require $class";
+    die if $@;
+
+    $class->new(%{$self})->run($app);
+}
+    
 
 1;
 

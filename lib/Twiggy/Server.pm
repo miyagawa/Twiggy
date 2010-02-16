@@ -60,7 +60,13 @@ sub _create_tcp_server {
         $port = $listen;
     }
 
-    return tcp_server $host, $port, $self->_accept_handler($app, $is_tcp), sub {
+    return tcp_server $host, $port, $self->_accept_handler($app, $is_tcp), 
+        $self->_accept_prepare_handler;
+}
+
+sub _accept_prepare_handler {
+    my $self = shift;
+    return sub {
         my ( $fh, $host, $port ) = @_;
         DEBUG && warn "Listening on $host:$port\n";
         $self->{prepared_host} = $host;
