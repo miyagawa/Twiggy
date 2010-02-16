@@ -96,6 +96,8 @@ Yuval Kogman
 
 Hideki Yamamura
 
+Daisuke Maki
+
 =head1 SEE ALSO
 
 L<Plack> L<AnyEvent> L<Tatsumaki>
