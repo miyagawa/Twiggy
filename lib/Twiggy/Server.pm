@@ -154,8 +154,6 @@ sub _accept_handler {
 sub _try_read_headers {
     my ( $self, $sock, undef ) = @_;
 
-    return unless defined fileno $sock;
-
     # FIXME add a timer to manage read timeouts
     local $/ = "\012";
 
@@ -210,6 +208,8 @@ sub _create_req_parsing_watcher {
 
 sub _bad_request {
     my ( $self, $sock ) = @_;
+
+    return unless defined $sock and defined fileno $sock;
 
     $self->_write_psgi_response(
         $sock,
@@ -450,7 +450,7 @@ sub _write_body {
     } elsif ( Plack::Util::is_real_fh($body) ) {
         # real handles use nonblocking IO
         # either AIO or using watchers, with sendfile or with copying IO
-        $self->_write_real_fh($sock, $body);
+        return $self->_write_real_fh($sock, $body);
     } elsif ( blessed($body) and $body->can("string_ref") ) {
         # optimize IO::String to not use its incredibly slow getline
         if ( my $pos = $body->tell ) {
