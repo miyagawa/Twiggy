@@ -25,6 +25,7 @@ use constant HAS_AIO => !$ENV{PLACK_NO_SENDFILE} && try {
     require IO::AIO;
     1;
 };
+use constant READ_CHUNK_SIZE => 4096;
 
 open my $null_io, '<', \'';
 
@@ -224,31 +225,37 @@ sub _read_chunk {
 
     my $data = '';
 
-    my $read_cb; $read_cb = sub {
-        my $rlen = read($sock, $data, $remaining, length($data));
+    my $try_read = sub {
+        READ_MORE: {
+            my $read_size = $remaining > READ_CHUNK_SIZE ? READ_CHUNK_SIZE : $remaining;
+            my $rlen = read($sock, $data, $read_size, length($data));
 
-        if (defined $rlen and $rlen > 0) {
-            $remaining -= $rlen;
+            if (defined $rlen and $rlen > 0) {
+                $remaining -= $rlen;
 
-            if ($remaining <= 0) {
-                undef $read_cb;
+                if ($remaining <= 0) {
+                    $cb->($data);
+                    return 1;
+                } else {
+                    redo READ_MORE;
+                }
+            } elsif (defined $rlen) {
                 $cb->($data);
+                return 1;
+            } elsif ($! and $! != EAGAIN && $! != EINTR && $! != WSAEWOULDBLOCK) {
+                die $!;
             }
-        } elsif (defined $rlen) {
-            undef $read_cb;
-            $cb->($data);
-        } elsif ($! and $! != EAGAIN && $! != EINTR && $! != WSAEWOULDBLOCK) {
-            die $!;
         }
+
+        return;
     };
 
-    $read_cb->();
-
-    if ($read_cb) {
+    unless ($try_read->()) {
         my $rw; $rw = AE::io($sock, 0, sub {
             try {
-                $read_cb->();
-                undef $rw unless $read_cb;
+                if ($try_read->()) {
+                    undef $rw;
+                }
             } catch {
                 undef $rw;
                 $self->_bad_request($sock);
@@ -470,7 +477,7 @@ sub _write_fh {
 
     no warnings 'recursion';
     $handle->on_drain(sub {
-        local $/ = \4096;
+        local $/ = \ READ_CHUNK_SIZE;
         if ( defined( my $buf = $body->getline ) ) {
             $handle->push_write($buf);
         } elsif ( $! ) {
