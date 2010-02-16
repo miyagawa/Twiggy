@@ -10,7 +10,7 @@ use Server::Starter qw(server_ports);
 sub register_service {
     my ($self, $app) = @_;
 
-    if ($self->{listen}) {
+    if (Twiggy::Server::DEBUG() && $self->{listen}) {
         warn "'listen' option is currently ignored when used in conjunction with Server::Starter (start_server script)";
     }
 
