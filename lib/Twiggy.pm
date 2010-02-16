@@ -56,8 +56,12 @@ Uses XS/C based HTTP header parser for the best performance.
 =item Lightweight and Fast
 
 The memory required to run twiggy is 6MB and it can serve more than
-4000 req/s with a single process on Perl 5.10 with MacBook Pro 13"
+4500 req/s with a single process on Perl 5.10 with MacBook Pro 13"
 late 2009.
+
+=item Superdaemon aware
+
+Supports L<Server::Starter> for hot deploy and graceful restarts.
 
 =back
 
@@ -72,7 +76,7 @@ Rack web server using EventMachine. You know, Twiggy is thin :)
 
 I'm sick of naming Perl software like
 HTTP::Server::PSGI::How::Its::Written::With::What::Module and people
-call it HSSPHIWWWM on IRC. It's hard to say on speeches and newbies
+call it HSPHIWWWM on IRC. It's hard to say on speeches and newbies
 would ask questions what they stand for every day. That's crazy.
 
 This module actually includes the longer alias and an empty subclass
