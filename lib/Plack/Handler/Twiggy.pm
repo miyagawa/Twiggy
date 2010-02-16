@@ -1,6 +1,6 @@
 package Plack::Handler::Twiggy;
 use strict;
-use parent qw( Twiggy );
+use parent qw( Twiggy::Server );
 
 1;
 
