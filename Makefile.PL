@@ -10,6 +10,7 @@ requires 'HTTP::Parser::XS';
 recommends 'EV';
 install_script 'bin/twiggy';
 test_requires 'Test::More';
+test_requires 'Test::TCP';
 use_test_base;
 auto_include_deps;
 author_tests('xt');
