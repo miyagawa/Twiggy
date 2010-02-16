@@ -98,15 +98,8 @@ sub _accept_handler {
         }
 
         my $headers = "";
-        my $timeout_timer = AE::timer($self->{timeout}, 0, sub {
-            DEBUG && warn "$sock Timeout $peer_host:$peer_port\n";
-            close $sock;
-        }) if $self->{timeout};
-
         my $try_parse = sub {
             if ( $self->_try_read_headers($sock, $headers) ) {
-                undef $timeout_timer;
-
                 my $env = {
                     SERVER_PORT         => $self->{prepared_port},
                     SERVER_NAME         => $self->{prepared_host},
@@ -192,14 +185,24 @@ sub _create_req_parsing_watcher {
     my ( $self, $sock, $try_parse, $app ) = @_;
 
     my $headers_io_watcher;
+
+    my $timeout_timer = AE::timer $self->{timeout}, 0, sub {
+        DEBUG && warn "$sock Timeout\n";
+        undef $headers_io_watcher;
+        undef $try_parse;
+        undef $sock;
+    } if $self->{timeout};
+
     $headers_io_watcher = AE::io $sock, 0, sub {
         try {
             if ( my $env = $try_parse->() ) {
                 undef $headers_io_watcher;
+                undef $timeout_timer;
                 $self->_run_app($app, $env, $sock);
             }
         } catch {
             undef $headers_io_watcher;
+            undef $timeout_timer;
             $self->_bad_request($sock);
         }
     };
