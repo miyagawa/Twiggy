@@ -25,7 +25,6 @@ use constant HAS_AIO => !$ENV{PLACK_NO_SENDFILE} && try {
     require IO::AIO;
     1;
 };
-use constant READ_CHUNK_SIZE => 4096;
 
 open my $null_io, '<', \'';
 
@@ -35,6 +34,7 @@ sub new {
     return bless {
         no_delay => 1,
         timeout => 300,
+        read_chunk_size => 4096,
         @args,
     }, $class;
 }
@@ -227,10 +227,11 @@ sub _read_chunk {
     my ($self, $sock, $remaining, $cb) = @_;
 
     my $data = '';
+    my $read_chunk_size = $self->{read_chunk_size};
 
     my $try_read = sub {
         READ_MORE: {
-            my $read_size = $remaining > READ_CHUNK_SIZE ? READ_CHUNK_SIZE : $remaining;
+            my $read_size = $remaining > $read_chunk_size ? $read_chunk_size : $remaining;
             my $rlen = read($sock, $data, $read_size, length($data));
 
             if (defined $rlen and $rlen > 0) {
@@ -480,7 +481,7 @@ sub _write_fh {
 
     no warnings 'recursion';
     $handle->on_drain(sub {
-        local $/ = \ READ_CHUNK_SIZE;
+        local $/ = \ $self->{read_chunk_size};
         if ( defined( my $buf = $body->getline ) ) {
             $handle->push_write($buf);
         } elsif ( $! ) {
