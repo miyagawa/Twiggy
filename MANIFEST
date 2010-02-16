@@ -34,10 +34,16 @@ inc/Test/Base/Filter.pm
 inc/Test/Builder.pm
 inc/Test/Builder/Module.pm
 inc/Test/More.pm
+inc/Test/SharedFork.pm
+inc/Test/SharedFork/Array.pm
+inc/Test/SharedFork/Scalar.pm
+inc/Test/SharedFork/Store.pm
+inc/Test/TCP.pm
 lib/AnyEvent/Server/PSGI.pm
 lib/Plack/Handler/Twiggy.pm
 lib/Twiggy.pm
 lib/Twiggy/Server.pm
+lib/Twiggy/Server/SS.pm
 Makefile.PL
 MANIFEST			This list of files
 META.yml
@@ -45,6 +51,7 @@ README
 t/00_compile.t
 t/anyevent.t
 t/anyevent_extensions.t
+t/anyevent_server_starter.t
 t/anyevent_slow_post.t
 xt/perlcritic.t
 xt/pod.t

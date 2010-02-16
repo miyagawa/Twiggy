@@ -1,5 +1,10 @@
 Revision history for Perl extension Twiggy
 
+0.1001 Mon Feb 15 19:51:34 PST 2010
+        - Destroy listen guards when it shuts down (lestrrat)
+        - Support Server::Starter (lestrrat)
+        - Fixed dependencies
+
 0.1000 Mon Feb 15 17:56:33 PST 2010
         - Renamed the distribution to Twiggy
         - Fixed a busyloop bug (hidekiy)
