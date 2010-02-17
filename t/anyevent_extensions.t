@@ -89,5 +89,11 @@ Plack::Test::Suite->run_server_tests(sub {
     $server->run($app);
 });
 
+Plack::Test::Suite->run_server_tests(sub {
+    my($port, $app) = @_;
+    my $server = Plack::Loader->load("Twiggy", port => $port, host => "127.0.0.1");
+    $server->run($app);
+}, undef, undef, workers => 5);
+
 done_testing();
 

@@ -88,7 +88,7 @@ sub _accept_handler {
     return sub {
         my ( $sock, $peer_host, $peer_port ) = @_;
 
-        DEBUG && warn "$sock Accepted connection from $peer_host:$peer_port\n";
+        DEBUG && warn "[$$] $sock Accepted connection from $peer_host:$peer_port\n";
         return unless $sock;
         $self->{exit_guard}->begin;
 
@@ -119,7 +119,7 @@ sub _accept_handler {
                 };
 
                 my $reqlen = parse_http_request($headers, $env);
-                DEBUG && warn "$sock Parsed HTTP headers: request length=$reqlen\n";
+                DEBUG && warn "[$$] $sock Parsed HTTP headers: request length=$reqlen\n";
 
                 if ( $reqlen < 0 ) {
                     die "bad request";
@@ -175,7 +175,7 @@ sub _try_read_headers {
         }
     }
 
-    DEBUG && warn "$sock did not read to end of req, wait for more data to arrive\n";
+    DEBUG && warn "[$$] $sock did not read to end of req, wait for more data to arrive\n";
     return;
 }
 
@@ -544,15 +544,10 @@ sub run {
     my $self = shift;
     $self->register_service(@_);
 
-    my $exit = $self->{exit_guard} = AE::cv {
-        # Make sure that we are not listening on a socket anymore, while
-        # other events are being flushed
-        delete $self->{listen_guards};
-    };
-    $exit->begin;
-
-    my $w; $w = AE::signal QUIT => sub { $exit->end; undef $w };
-    $exit->recv;
+    my $engine = $self->{workers} ? 'Twiggy::Server::Engine::PreFork' : 'Twiggy::Server::Engine::Default';
+    eval "require $engine";
+    die if $@;
+    $engine->run($self);
 }
 
 package Twiggy::Writer;

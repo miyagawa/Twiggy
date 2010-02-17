@@ -40,6 +40,27 @@ test_tcp(
     },
 );
 
+test_tcp(
+    client => sub {
+        my $port = shift;
+
+        my @bytes_list = (100, 10_000, 1_000_000);
+
+        foreach my $bytes (@bytes_list) {
+            post_request($port, $bytes, 0);
+        }
+
+        foreach my $bytes (@bytes_list) {
+            post_request($port, $bytes, 0.1);
+        }
+    },
+    server => sub {
+        my $port = shift;
+        my $server = Plack::Loader->load('Twiggy', port => $port, host => '127.0.0.1', workers => 5);
+        $server->run($app);
+    },
+);
+
 done_testing();
 
 

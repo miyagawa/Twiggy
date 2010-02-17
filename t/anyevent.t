@@ -8,4 +8,5 @@ use Plack;
 use Plack::Test::Suite;
 
 Plack::Test::Suite->run_server_tests('Twiggy');
+Plack::Test::Suite->run_server_tests('Twiggy', undef, undef, workers => 5);
 done_testing();
