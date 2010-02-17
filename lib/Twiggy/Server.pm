@@ -544,10 +544,15 @@ sub run {
     my $self = shift;
     $self->register_service(@_);
 
-    my $engine = $self->{workers} ? 'Twiggy::Server::Engine::PreFork' : 'Twiggy::Server::Engine::Default';
-    eval "require $engine";
-    die if $@;
-    $engine->run($self);
+    my $exit = $self->{exit_guard} = AE::cv {
+        # Make sure that we are not listening on a socket anymore, while
+        # other events are being flushed
+        delete $self->{listen_guards};
+    };
+    $exit->begin;
+
+    my $w; $w = AE::signal QUIT => sub { $exit->end; undef $w };
+    $exit->recv;
 }
 
 package Twiggy::Writer;
