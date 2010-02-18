@@ -16,7 +16,7 @@ use AnyEvent::Socket;
 use AnyEvent::Util qw(WSAEWOULDBLOCK);
 
 use HTTP::Status;
-use HTTP::Parser::XS qw(parse_http_request);
+use Plack::HTTPParser qw(parse_http_request);
 use Plack::Util;
 
 use constant DEBUG => $ENV{TWIGGY_DEBUG};

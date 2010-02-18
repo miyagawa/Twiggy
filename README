@@ -35,6 +35,7 @@ DESCRIPTION
 
     Fast header parser
         Uses XS/C based HTTP header parser for the best performance.
+        (optional)
 
     Lightweight and Fast
         The memory required to run twiggy is 6MB and it can serve more than
