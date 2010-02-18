@@ -11,15 +11,6 @@ sub run {
 
     my $class = $ENV{SERVER_STARTER_PORT} ?
         'Twiggy::Server::SS' : 'Twiggy::Server';
-    if (exists $self->{workers} && $self->{workers} > 0) {
-        my $parent = $class;
-        eval "require $parent";
-        die if $@;
-
-        $class = 'Twiggy::Server::PreFork';
-        no strict 'refs';
-        unshift @{$class . '::ISA'}, $parent;
-    }
     eval "require $class";
     die if $@;
 

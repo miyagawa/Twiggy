@@ -1,5 +1,6 @@
 use strict;
 use warnings;
+use Test::Requires qw(Parallel::Prefork);
 use Test::More qw(no_diag);
 use Test::TCP;
 use IO::Socket::INET;

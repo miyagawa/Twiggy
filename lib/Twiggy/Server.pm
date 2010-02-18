@@ -61,7 +61,8 @@ sub _create_tcp_server {
         $port = $listen;
     }
 
-    return tcp_server $host, $port, $self->_accept_handler($app, $is_tcp), 
+    return tcp_server $host, $port,
+        $self->_accept_handler($app, $is_tcp), 
         $self->_accept_prepare_handler;
 }
 
@@ -85,7 +86,7 @@ sub _accept_prepare_handler {
 sub _accept_handler {
     my ( $self, $app, $is_tcp ) = @_;
 
-    return sub {
+    my $cb = sub {
         my ( $sock, $peer_host, $peer_port ) = @_;
 
         DEBUG && warn "[$$] $sock Accepted connection from $peer_host:$peer_port\n";
@@ -147,6 +148,22 @@ sub _accept_handler {
             $self->_bad_request($sock);
         }
     };
+    if ($self->{workers}) {
+        return sub {
+            $self->{reqs_per_child}++;
+            eval {
+                $cb->(@_);
+            };
+            my $e = $@;
+
+            if ($self->{reqs_per_child} > $self->{max_requests}) {
+                Twiggy::Server::DEBUG && warn "[$$] max requests ( $self->{max_requests}) reached";
+                my $cv = $self->{exit_guard};
+                $cv->end;
+            }
+        };
+    }
+    return $cb;
 }
 
 # returns a closure that tries to parse
@@ -544,15 +561,39 @@ sub run {
     my $self = shift;
     $self->register_service(@_);
 
-    my $exit = $self->{exit_guard} = AE::cv {
-        # Make sure that we are not listening on a socket anymore, while
-        # other events are being flushed
-        delete $self->{listen_guards};
-    };
-    $exit->begin;
+    if ($self->{workers}) {
+        require Parallel::Prefork;
 
-    my $w; $w = AE::signal QUIT => sub { $exit->end; undef $w };
-    $exit->recv;
+        $self->{max_requests} ||= 1000;
+        my $pm = Parallel::Prefork->new({
+            max_workers => $self->{workers},
+            trap_signals => {
+                TERM => 'TERM',
+                HUP  => 'TERM',
+            },
+        });
+        while ($pm->signal_received ne 'TERM') {
+            $pm->start and next;
+            Twiggy::Server::DEBUG && warn "[$$] start";
+            my $exit = $self->{exit_guard} = AE::cv;
+            $exit->begin;
+            my $w; $w = AE::signal TERM => sub { $exit->end; undef $w };
+            $exit->recv;
+            Twiggy::Server::DEBUG && warn "[$$] finish";
+            $pm->finish;
+        }
+        $pm->wait_all_children;
+    } else {
+        my $exit = $self->{exit_guard} = AE::cv {
+            # Make sure that we are not listening on a socket anymore, while
+            # other events are being flushed
+            delete $self->{listen_guards};
+        };
+        $exit->begin;
+
+        my $w; $w = AE::signal QUIT => sub { $exit->end; undef $w };
+        $exit->recv;
+    }
 }
 
 package Twiggy::Writer;
