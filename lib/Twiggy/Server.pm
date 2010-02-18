@@ -326,29 +326,29 @@ sub _write_psgi_response {
     my ( $self, $sock, $res ) = @_;
 
     if ( ref $res eq 'ARRAY' ) {
-		if ( scalar @$res == 0 ) {
-			# no response
-			$self->{exit_guard}->end;
-			return;
-		}
+        if ( scalar @$res == 0 ) {
+            # no response
+            $self->{exit_guard}->end;
+            return;
+        }
 
         my ( $status, $headers, $body ) = @$res;
 
-		my $cv = AE::cv;
+        my $cv = AE::cv;
 
-		$self->_write_headers( $sock, $status, $headers )->cb(sub {
-			local $@;
-			if ( eval { $_[0]->recv; 1 } ) {
-				$self->_write_body($sock, $body)->cb(sub {
-					shutdown $sock, 1;
-					$self->{exit_guard}->end;
-					local $@;
-					eval { $cv->send($_[0]->recv); 1 } or $cv->croak($@);
-				});
-			}
-		});
+        $self->_write_headers( $sock, $status, $headers )->cb(sub {
+            local $@;
+            if ( eval { $_[0]->recv; 1 } ) {
+                $self->_write_body($sock, $body)->cb(sub {
+                    shutdown $sock, 1;
+                    $self->{exit_guard}->end;
+                    local $@;
+                    eval { $cv->send($_[0]->recv); 1 } or $cv->croak($@);
+                });
+            }
+        });
 
-		return $cv;
+        return $cv;
     } else {
         no warnings 'uninitialized';
         warn "Unknown response type: $res";
