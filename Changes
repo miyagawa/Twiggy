@@ -1,5 +1,8 @@
 Revision history for Perl extension Twiggy
 
+0.1004 Thu Feb 18 15:03:33 PST 2010
+        - Fixed the exit_guards so embedding Twiggy works (melo)
+
 0.1003 Thu Feb 18 13:33:20 PST 2010
         - Improved memory usage (hidekiy)
         - Reverted XS dependency on HTTP::Parser::XS to be optional (tokuhirom)
