@@ -24,7 +24,8 @@ See C<twiggey -h> for more details.
       port => $port,
   );
   $server->register_service($app);
-  $server->run;
+
+  AE::cv->recv;
 
 =head1 DESCRIPTION
 
