@@ -7,7 +7,7 @@ use AnyEvent::Util qw(fh_nonblocking guard);
 use AnyEvent::Socket qw(format_address);
 use Server::Starter qw(server_ports);
 
-sub register_service {
+sub start_listen {
     my ($self, $app) = @_;
 
     if (Twiggy::Server::DEBUG() && $self->{listen}) {
@@ -25,13 +25,6 @@ sub register_service {
 
     # overwrite, just in case somebody wants to refer to it afterwards
     $self->{listen} = \@listen;
-
-    $self->{exit_guard} = AE::cv {
-        # Make sure that we are not listening on a socket anymore, while
-        # other events are being flushed
-        delete $self->{listen_guards};
-    };
-    $self->{exit_guard}->begin;
 }
 
 sub _create_ss_tcp_server {

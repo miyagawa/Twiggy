@@ -39,13 +39,18 @@ sub new {
     }, $class;
 }
 
-sub register_service {
-    my($self, $app) = @_;
-
+sub start_listen {
+    my ($self, $app) = @_;
     my @listen = @{$self->{listen} || [ ($self->{host} || '') . ":$self->{port}" ]};
     for my $listen (@listen) {
         push @{$self->{listen_guards}}, $self->_create_tcp_server($listen, $app);
     }
+}
+
+sub register_service {
+    my($self, $app) = @_;
+
+    $self->start_listen($app);
 
     $self->{exit_guard} = AE::cv {
         # Make sure that we are not listening on a socket anymore, while
