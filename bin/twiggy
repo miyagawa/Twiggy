@@ -3,7 +3,12 @@ use strict;
 use lib "lib";
 use Plack::Runner;
 
-my $runner = Plack::Runner->new(server => 'Twiggy', env => 'deployment');
+sub version {
+    require Twiggy;
+    print "Twiggy $Twiggy::VERSION\n";
+}
+
+my $runner = Plack::Runner->new(server => 'Twiggy', env => 'deployment', version_cb => \&version);
 $runner->parse_options(@ARGV);
 $runner->run;
 
