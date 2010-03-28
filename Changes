@@ -1,5 +1,8 @@
 Revision history for Perl extension Twiggy
 
+0.1005 Sun Mar 28 14:37:03 PDT 2010
+        - Implemented twiggy -v
+
 0.1004 Thu Feb 18 15:03:33 PST 2010
         - Fixed the exit_guards so embedding Twiggy works (melo)
 

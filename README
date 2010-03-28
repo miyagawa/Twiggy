@@ -47,8 +47,8 @@ DESCRIPTION
 
 NAMING
   Twiggy?
-    Because it is like <Thin>, Ruby's Rack web server using EventMachine.
-    You know, Twiggy is thin :)
+    Because it is like Thin <http://code.macournoyer.com/thin/>, Ruby's Rack
+    web server using EventMachine. You know, Twiggy is thin :)
 
   Why the cute name instead of more descriptive namespace? Are you on drugs?
     I'm sick of naming Perl software like
