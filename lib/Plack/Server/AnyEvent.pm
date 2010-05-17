@@ -2,7 +2,7 @@ package Plack::Server::AnyEvent;
 use strict;
 use warnings;
 use 5.008_001;
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 use Scalar::Util qw(blessed weaken);
 use Try::Tiny;
@@ -496,7 +496,11 @@ __END__
 
 =head1 NAME
 
-Plack::Server::AnyEvent - AnyEvent based HTTP server
+Plack::Server::AnyEvent - DEPRECATED. Use Twiggy
+
+=head1 WARNING
+
+This software is deprecated. Use L<Twiggy> instead.
 
 =head1 SYNOPSIS
 
@@ -523,5 +527,9 @@ Tokuhiro Matsuno
 Yuval Kogman
 
 Tatsuhiko Miyagawa
+
+=head1 SEE ALSO
+
+L<Twiggy>
 
 =cut

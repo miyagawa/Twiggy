@@ -1,5 +1,8 @@
 NAME
-    Plack::Server::AnyEvent - AnyEvent based HTTP server
+    Plack::Server::AnyEvent - DEPRECATED. Use Twiggy
+
+WARNING
+    This software is deprecated. Use Twiggy instead.
 
 SYNOPSIS
       my $server = Plack::Server::AnyEvent->new(
@@ -22,4 +25,7 @@ AUTHOR
     Yuval Kogman
 
     Tatsuhiko Miyagawa
+
+SEE ALSO
+    Twiggy
 

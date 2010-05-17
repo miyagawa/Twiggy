@@ -1,5 +1,8 @@
 Revision history for Perl extension Plack::Server::AnyEvent
 
+0.04  Mon May 17 12:28:08 PDT 2010
+        - This software is now deprecated. Use Twiggy
+
 0.03  Wed Nov 11 21:33:16 PST 2009
         - Merged nothingmuch's fork to make the socket handling much faster (twice as fast!)
         - Fixed poll_cb and writer shutdown
