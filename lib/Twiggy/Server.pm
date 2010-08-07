@@ -492,10 +492,28 @@ sub _write_fh {
     });
 
     no warnings 'recursion';
-    $handle->on_drain(sub {
+    $handle->on_drain( $self->_drain($body, $ret) );
+
+    return $ret;
+}
+
+sub _drain {
+    my ($self, $body, $ret) = @_;
+    return sub {
+        my $handle = shift;
         local $/ = \ $self->{read_chunk_size};
         if ( defined( my $buf = $body->getline ) ) {
-            $handle->push_write($buf);
+            if (length($buf)) {
+                $handle->push_write($buf);
+            }
+            else {
+                # if on_drain is called and we don't do any
+                # push_write, anyevent::handle thinks we are done.
+                # this fails for the deflater mw, since one 4096 chunk
+                # of getline might not generate a deflated packet yet,
+                # which gets us an empty string here.
+                return $self->_drain($body, $ret)->($handle);
+            }
         } elsif ( $! ) {
             $ret->croak($!);
             $handle->destroy;
@@ -507,9 +525,8 @@ sub _write_fh {
                 $ret->send(1);
             });
         }
-    });
 
-    return $ret;
+    }
 }
 
 # when the body handle is a real filehandle we use this routine, which is more
