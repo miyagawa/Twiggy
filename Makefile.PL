@@ -9,6 +9,7 @@ requires 'Try::Tiny';
 recommends 'HTTP::Parser::XS';
 recommends 'EV';
 install_script 'bin/twiggy';
+test_requires 'Test::Requires';
 test_requires 'Test::More';
 test_requires 'Test::TCP';
 use_test_base;
