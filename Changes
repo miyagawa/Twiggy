@@ -1,5 +1,9 @@
 Revision history for Perl extension Twiggy
 
+0.1006 Sun Aug  8 23:35:52 PDT 2010
+        - Fix an edge case when on_drain gets empty string the request is never completed (clkao)
+        - no automatic 'use lib' in twiggy command line
+
 0.1005 Sun Mar 28 14:37:03 PDT 2010
         - Implemented twiggy -v
 
