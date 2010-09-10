@@ -1,5 +1,9 @@
 Revision history for Perl extension Twiggy
 
+0.1007 Fri Sep 10 13:13:18 PDT 2010
+        - Passing port => 0|undef to the Plack::Handler::Twiggy (and Twiggy::Server) means
+          it's passing them to AnyEvent::Socket to find un available random port.
+
 0.1006 Sun Aug  8 23:35:52 PDT 2010
         - Fix an edge case when on_drain gets empty string the request is never completed (clkao)
         - no automatic 'use lib' in twiggy command line

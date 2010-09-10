@@ -2,7 +2,7 @@ package Twiggy;
 use strict;
 use warnings;
 use 5.008_001;
-our $VERSION = '0.1006';
+our $VERSION = '0.1007';
 
 1;
 __END__
