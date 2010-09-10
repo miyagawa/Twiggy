@@ -41,7 +41,7 @@ sub new {
 
 sub start_listen {
     my ($self, $app) = @_;
-    my @listen = @{$self->{listen} || [ ($self->{host} || '') . ":$self->{port}" ]};
+    my @listen = @{$self->{listen} || [ ($self->{host} || '') . ":" . ($self->{port} || 0) ]};
     for my $listen (@listen) {
         push @{$self->{listen_guards}}, $self->_create_tcp_server($listen, $app);
     }
@@ -67,13 +67,14 @@ sub _create_tcp_server {
     if ($listen =~ /:\d+$/) {
         ($host, $port) = split /:/, $listen;
         $host = undef if $host eq '';
+        $port = undef if $port == 0;
         $is_tcp = 1;
     } else {
         $host = "unix/";
         $port = $listen;
     }
 
-    return tcp_server $host, $port, $self->_accept_handler($app, $is_tcp), 
+    return tcp_server $host, $port, $self->_accept_handler($app, $is_tcp),
         $self->_accept_prepare_handler;
 }
 
