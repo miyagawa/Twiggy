@@ -4,7 +4,7 @@ NAME
 SYNOPSIS
       twiggy --listen :8080
 
-    See "twiggey -h" for more details.
+    See "twiggy -h" for more details.
 
       use Twiggy::Server;
 

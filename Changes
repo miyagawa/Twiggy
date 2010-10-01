@@ -1,5 +1,9 @@
 Revision history for Perl extension Twiggy
 
+0.1008 Fri Oct  1 11:54:01 PDT 2010
+        - Fixes shebang (chiba)
+        - Fixed typo
+
 0.1007 Fri Sep 10 13:13:18 PDT 2010
         - Passing port => 0|undef to the Plack::Handler::Twiggy (and Twiggy::Server) means
           it's passing them to AnyEvent::Socket to find un available random port.
