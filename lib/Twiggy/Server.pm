@@ -354,6 +354,7 @@ sub _write_psgi_response {
             if ( eval { $_[0]->recv; 1 } ) {
                 $self->_write_body($sock, $body)->cb(sub {
                     shutdown $sock, 1;
+                    close $sock;
                     $self->{exit_guard}->end;
                     local $@;
                     eval { $cv->send($_[0]->recv); 1 } or $cv->croak($@);
