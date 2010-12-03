@@ -38,6 +38,7 @@ README
 t/00_compile.t
 t/anyevent.t
 t/anyevent_extensions.t
+t/anyevent_manyconnections.t
 t/anyevent_server_starter.t
 t/anyevent_slow_post.t
 t/deflater.t

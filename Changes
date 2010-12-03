@@ -1,5 +1,8 @@
 Revision history for Perl extension Twiggy
 
+0.1009 Fri Dec  3 11:52:20 PST 2010
+        - Fixed leaking fd (t0m)
+
 0.1008 Fri Oct  1 11:54:01 PDT 2010
         - Fixes shebang (chiba)
         - Fixed typo
