@@ -303,6 +303,7 @@ sub _run_app {
     if ( ref $res eq 'ARRAY' ) {
         $self->_write_psgi_response($sock, $res);
     } elsif ( blessed($res) and $res->isa("AnyEvent::CondVar") ) {
+        Carp::croak("Returning AnyEvent condvar is deprecated and will be removed in the next release of Twiggy. Use the streaming callback interface intstead.");
         $res->cb(sub { $self->_write_psgi_response($sock, shift->recv) });
     } elsif ( ref $res eq 'CODE' ) {
         $res->(
