@@ -1,5 +1,8 @@
 Revision history for Perl extension Twiggy
 
+0.1010 Mon Jan 17 17:04:14 PST 2011
+        - Returning CondVar as a PSGI response is deprecated. Will be removed in the next release
+
 0.1009 Fri Dec  3 11:52:20 PST 2010
         - Fixed leaking fd (t0m)
 
