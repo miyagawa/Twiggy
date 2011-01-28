@@ -55,8 +55,10 @@ sub _create_ss_tcp_server {
         Carp::croak "failed to bind to listening socket: $!";
     fh_nonblocking $state{fh}, 1;
 
+    my($listen_host, $listen_port);
+
     my $len;
-    my $prepare = $self->_accept_prepare_handler;
+    my $prepare = $self->_accept_prepare_handler(\$listen_host, \$listen_port);
     if ($prepare) {
         my ($service, $host) = AnyEvent::Socket::unpack_sockaddr getsockname $state{fh};
         $len = $prepare && $prepare->( $state{fh}, format_address $host, $service );
@@ -66,7 +68,7 @@ sub _create_ss_tcp_server {
 
     listen $state{fh}, $len or Carp::croak "listen: $!";
 
-    my $accept = $self->_accept_handler($app, $is_tcp);
+    my $accept = $self->_accept_handler($app, $is_tcp, \$listen_host, \$listen_port);
     $state{aw} = AE::io $state{fh}, 0, sub {
         # this closure keeps $state alive
         while ($state{fh} && (my $peer = accept my $fh, $state{fh})) {
