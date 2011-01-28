@@ -74,17 +74,20 @@ sub _create_tcp_server {
         $port = $listen;
     }
 
-    return tcp_server $host, $port, $self->_accept_handler($app, $is_tcp),
-        $self->_accept_prepare_handler;
+    my($listen_host, $listen_port);
+
+    return tcp_server $host, $port, $self->_accept_handler($app, $is_tcp, \$listen_host, \$listen_port),
+        $self->_accept_prepare_handler(\$listen_host, \$listen_port);
 }
 
 sub _accept_prepare_handler {
-    my $self = shift;
+    my($self, $listen_host_r, $listen_port_r) = @_;
+
     return sub {
         my ( $fh, $host, $port ) = @_;
         DEBUG && warn "Listening on $host:$port\n";
-        $self->{prepared_host} = $host;
-        $self->{prepared_port} = $port;
+        $$listen_host_r = $host;
+        $$listen_port_r = $port;
         $self->{server_ready}->({
             host => $host,
             port => $port,
@@ -96,7 +99,7 @@ sub _accept_prepare_handler {
 }
 
 sub _accept_handler {
-    my ( $self, $app, $is_tcp ) = @_;
+    my ( $self, $app, $is_tcp, $listen_host_r, $listen_port_r ) = @_;
 
     return sub {
         my ( $sock, $peer_host, $peer_port ) = @_;
@@ -114,8 +117,8 @@ sub _accept_handler {
         my $try_parse = sub {
             if ( $self->_try_read_headers($sock, $headers) ) {
                 my $env = {
-                    SERVER_PORT         => $self->{prepared_port},
-                    SERVER_NAME         => $self->{prepared_host},
+                    SERVER_NAME         => $$listen_host_r,
+                    SERVER_PORT         => $$listen_port_r,
                     SCRIPT_NAME         => '',
                     REMOTE_ADDR         => $peer_host,
                     'psgi.version'      => [ 1, 0 ],
