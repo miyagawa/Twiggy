@@ -76,6 +76,20 @@ install L<Server::Starter> and use:
 
 =back
 
+
+=head1 ENVIRONMENT
+
+The following environment variables are supported.
+
+=over 4
+
+=item TWIGGY_DEBUG
+
+Set to true to enable debug messages from Twiggy.
+
+=back
+
+
 =head1 NAMING
 
 =head2 Twiggy?
