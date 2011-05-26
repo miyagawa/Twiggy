@@ -63,7 +63,16 @@ late 2009.
 
 =item Superdaemon aware
 
-Supports L<Server::Starter> for hot deploy and graceful restarts.
+Supports L<Server::Starter> for hot deploy and
+graceful restarts.
+
+To use it, instead of the usual:
+
+    plackup --server Twiggy --port 8111 app.psgi
+
+install L<Server::Starter> and use:
+
+    start_server --port 8111 plackup --server Twiggy app.psgi
 
 =back
 
