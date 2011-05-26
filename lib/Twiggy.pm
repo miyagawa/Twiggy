@@ -51,7 +51,9 @@ renamed to Twiggy. See L</NAMING> for details.
 
 =item Fast header parser
 
-Uses XS/C based HTTP header parser for the best performance. (optional)
+Uses XS/C based HTTP header parser for the best performance. (optional,
+install the L<HTTP::Parser::XS> module to enable it; see also
+L<Plack::HTTPParser> for more information).
 
 =item Lightweight and Fast
 
