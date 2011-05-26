@@ -51,7 +51,9 @@ renamed to Twiggy. See L</NAMING> for details.
 
 =item Fast header parser
 
-Uses XS/C based HTTP header parser for the best performance. (optional)
+Uses XS/C based HTTP header parser for the best performance. (optional,
+install the L<HTTP::Parser::XS> module to enable it; see also
+L<Plack::HTTPParser> for more information).
 
 =item Lightweight and Fast
 
@@ -61,9 +63,32 @@ late 2009.
 
 =item Superdaemon aware
 
-Supports L<Server::Starter> for hot deploy and graceful restarts.
+Supports L<Server::Starter> for hot deploy and
+graceful restarts.
+
+To use it, instead of the usual:
+
+    plackup --server Twiggy --port 8111 app.psgi
+
+install L<Server::Starter> and use:
+
+    start_server --port 8111 plackup --server Twiggy app.psgi
 
 =back
+
+
+=head1 ENVIRONMENT
+
+The following environment variables are supported.
+
+=over 4
+
+=item TWIGGY_DEBUG
+
+Set to true to enable debug messages from Twiggy.
+
+=back
+
 
 =head1 NAMING
 
