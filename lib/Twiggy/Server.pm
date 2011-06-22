@@ -65,8 +65,12 @@ sub _create_tcp_server {
 
     my($host, $port, $is_tcp);
     if ($listen =~ /:\d+$/) {
-        ($host, $port) = split /:/, $listen;
-        $host = undef if $host eq '';
+	# weed out port name
+	my @l = split(/:/, $listen);
+	$port = pop(@l);
+	$host = join(':', @l);
+	$host =~ s/[\[\]]+//g if defined $host;
+	$host = undef if defined $host && $host eq '';
         $port = undef if $port == 0;
         $is_tcp = 1;
     } else {
