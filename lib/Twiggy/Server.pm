@@ -160,7 +160,7 @@ sub _accept_handler {
 
             1;
         }) {
-            $self->_bad_request($sock);
+            $self->_bad_request($sock) unless $@ eq 'client disconnected';
         }
     };
 }
@@ -217,7 +217,7 @@ sub _create_req_parsing_watcher {
         } catch {
             undef $headers_io_watcher;
             undef $timeout_timer;
-            $self->_bad_request($sock);
+            $self->_bad_request($sock) unless $_ eq 'client disconnected';
         }
     };
 }
