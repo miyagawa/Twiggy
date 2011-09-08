@@ -160,7 +160,8 @@ sub _accept_handler {
 
             1;
         }) {
-            $self->_bad_request($sock);
+            my $disconnected = ($@ =~ /^client disconnected/);
+            $self->_bad_request($sock, $disconnected);
         }
     };
 }
@@ -217,24 +218,27 @@ sub _create_req_parsing_watcher {
         } catch {
             undef $headers_io_watcher;
             undef $timeout_timer;
-            $self->_bad_request($sock);
+            my $disconnected = /^client disconnected/;
+            $self->_bad_request($sock, $disconnected);
         }
     };
 }
 
 sub _bad_request {
-    my ( $self, $sock ) = @_;
+    my ( $self, $sock, $disconnected ) = @_;
 
     return unless defined $sock and defined fileno $sock;
 
-    $self->_write_psgi_response(
-        $sock,
-        [
-            400,
-            [ 'Content-Type' => 'text/plain' ],
-            [ ],
-        ],
-    );
+    my $response = [
+        400,
+        [ 'Content-Type' => 'text/plain' ],
+        [ ],
+    ];
+
+    # if client is already gone, don't try to write to it
+    $response = [] if $disconnected;
+
+    $self->_write_psgi_response($sock, $response);
 
     return;
 }
