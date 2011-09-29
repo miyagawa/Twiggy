@@ -27,6 +27,16 @@ See C<twiggy -h> for more details.
 
   AE::cv->recv;
 
+  Example(hw.psgi):
+    my $app = sub {
+        my $env = shift;
+        return [ '200', [ 'Content-Type' => 'text/plain' ], [ "Hello World" ] ];
+    };
+
+  Run:
+    twiggy --listen :9090 hw.psgi
+
+
 =head1 DESCRIPTION
 
 Twiggy is a lightweight and fast HTTP server with unique features such
