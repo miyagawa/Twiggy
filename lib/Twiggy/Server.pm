@@ -292,7 +292,7 @@ sub _run_app {
     my($self, $app, $env, $sock) = @_;
 
     unless ($env->{'psgi.input'}) {
-        if ($env->{CONTENT_LENGTH} && $env->{REQUEST_METHOD} =~ /^(?:POST|PUT)$/) {
+        if ($env->{CONTENT_LENGTH}) {
             $self->_read_chunk($sock, $env->{CONTENT_LENGTH}, sub {
                 my ($data) = @_;
                 open my $input, '<', \$data;
