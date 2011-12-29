@@ -1,5 +1,7 @@
 Revision history for Perl extension Twiggy
 
+        - Don't restrict parsing the request body to PUT and POST requests
+
 0.1010 Mon Jan 17 17:04:14 PST 2011
         - Returning CondVar as a PSGI response is deprecated. Will be removed in the next release
 
