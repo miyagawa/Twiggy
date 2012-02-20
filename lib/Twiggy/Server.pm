@@ -268,6 +268,8 @@ sub _read_chunk {
                 return 1;
             } elsif ($! and $! != EAGAIN && $! != EINTR && $! != WSAEWOULDBLOCK) {
                 die $!;
+            } elsif (!$!) {
+                die "client disconnected";
             }
         }
 
