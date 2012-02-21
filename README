@@ -35,7 +35,8 @@ DESCRIPTION
 
     Fast header parser
         Uses XS/C based HTTP header parser for the best performance.
-        (optional)
+        (optional, install the HTTP::Parser::XS module to enable it; see
+        also Plack::HTTPParser for more information).
 
     Lightweight and Fast
         The memory required to run twiggy is 6MB and it can serve more than
@@ -44,6 +45,20 @@ DESCRIPTION
 
     Superdaemon aware
         Supports Server::Starter for hot deploy and graceful restarts.
+
+        To use it, instead of the usual:
+
+            plackup --server Twiggy --port 8111 app.psgi
+
+        install Server::Starter and use:
+
+            start_server --port 8111 plackup --server Twiggy app.psgi
+
+ENVIRONMENT
+    The following environment variables are supported.
+
+    TWIGGY_DEBUG
+        Set to true to enable debug messages from Twiggy.
 
 NAMING
   Twiggy?

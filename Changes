@@ -1,6 +1,11 @@
 Revision history for Perl extension Twiggy
 
-        - Don't restrict parsing the request body to PUT and POST requests
+0.1020 Mon Feb 20 16:31:44 PST 2012
+        - Improve SEREVR_PORT when binding multiple ports
+        - Documentation fixes (Pedro Melo)
+        - Suppres 400 if client disconnected (athomason)
+        - Don't restrict parsing the request body to PUT and POST requests (Moritz Onken)
+        - Fixed broken POST data processing (und3f, hidekiy)
 
 0.1010 Mon Jan 17 17:04:14 PST 2011
         - Returning CondVar as a PSGI response is deprecated. Will be removed in the next release

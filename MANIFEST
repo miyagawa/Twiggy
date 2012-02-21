@@ -42,6 +42,7 @@ t/anyevent_manyconnections.t
 t/anyevent_server_starter.t
 t/anyevent_slow_post.t
 t/deflater.t
+t/disconnect.t
 xt/perlcritic.t
 xt/pod.t
 xt/podspell.t
