@@ -389,13 +389,13 @@ sub _write_headers {
 sub _format_headers {
     my ( $self, $status, $headers ) = @_;
 
-    my $hdr = sprintf "HTTP/1.0 %d %s\015\012", $status, HTTP::Status::status_message($status);
+    my $hdr = sprintf "HTTP/1.1 %d %s\015\012", $status, HTTP::Status::status_message($status);
 
     my $i = 0;
 
     my @delim = ("\015\012", ": ");
 
-    foreach my $str ( @$headers ) {
+    foreach my $str ( @$headers, qw( Connection close ) ) {
         $hdr .= $str . $delim[++$i % 2];
     }
 
