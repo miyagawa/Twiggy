@@ -1,5 +1,8 @@
 Revision history for Perl extension Twiggy
 
+0.1021 Fri Oct 19 15:09:17 PDT 2012
+        - Repackage with the latest Module::Install
+
 0.1020 Mon Feb 20 16:31:44 PST 2012
         - Improve SEREVR_PORT when binding multiple ports
         - Documentation fixes (Pedro Melo)
