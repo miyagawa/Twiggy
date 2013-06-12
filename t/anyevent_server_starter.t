@@ -1,6 +1,6 @@
 use strict;
 use Test::More;
-use Test::Requires qw(Server::Starter);
+use Test::Requires qw(Server::Starter LWP::UserAgent);
 use Test::TCP;
 use LWP::UserAgent;
 use Server::Starter qw(start_server);
@@ -19,7 +19,6 @@ test_tcp(
     client => sub {
         my $port = shift;
 
-        # XXX LWP is implied by plack
         my $ua = LWP::UserAgent->new();
         my $res = $ua->get("http://127.0.0.1:$port/");
         ok $res->is_success, "request ok";

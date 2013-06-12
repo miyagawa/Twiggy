@@ -26,7 +26,6 @@ my %WriteMakefileArgs = (
     "Try::Tiny" => 0
   },
   "TEST_REQUIRES" => {
-    "LWP::UserAgent" => 0,
     "Test::More" => 0,
     "Test::Requires" => 0,
     "Test::TCP" => 0

@@ -8,5 +8,4 @@ on test => sub {
     requires 'Test::More';
     requires 'Test::Requires';
     requires 'Test::TCP';
-    requires 'LWP::UserAgent';
 };
