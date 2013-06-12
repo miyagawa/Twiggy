@@ -1,6 +1,8 @@
 Revision history for Perl extension Twiggy
 
 {{$NEXT}}
+
+0.1022  2013-06-12 12:36:16 PDT
         - convert to use Milla
         - Fix dependency for LWP
 
