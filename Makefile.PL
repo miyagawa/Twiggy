@@ -16,7 +16,9 @@ my %WriteMakefileArgs = (
     "ExtUtils::MakeMaker" => "6.30"
   },
   "DISTNAME" => "Twiggy",
-  "EXE_FILES" => [],
+  "EXE_FILES" => [
+    "script/twiggy"
+  ],
   "LICENSE" => "perl",
   "NAME" => "Twiggy",
   "PREREQ_PM" => {
@@ -30,7 +32,7 @@ my %WriteMakefileArgs = (
     "Test::Requires" => 0,
     "Test::TCP" => 0
   },
-  "VERSION" => "0.1022",
+  "VERSION" => "0.1023",
   "test" => {
     "TESTS" => "t/*.t"
   }

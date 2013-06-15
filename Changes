@@ -2,6 +2,9 @@ Revision history for Perl extension Twiggy
 
 {{$NEXT}}
 
+0.1023  2013-06-15 01:51:22 PDT
+        - Move the bin directory (moznion) #35
+
 0.1022  2013-06-12 12:36:16 PDT
         - convert to use Milla
         - Fix dependency for LWP
