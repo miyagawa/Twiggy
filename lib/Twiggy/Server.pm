@@ -369,6 +369,9 @@ sub _write_psgi_response {
                     local $@;
                     eval { $cv->send($_[0]->recv); 1 } or $cv->croak($@);
                 });
+            } else {
+                $self->{exit_guard}->end;
+                eval { $cv->send($_[0]->recv); 1 } or $cv->croak($@);
             }
         });
 
