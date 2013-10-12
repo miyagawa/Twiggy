@@ -2,6 +2,9 @@ Revision history for Perl extension Twiggy
 
 {{$NEXT}}
 
+0.1024  2013-10-12 11:35:35 PDT
+        - Fix a bug where exit_guard is not correctly decremented when writing header failed (maedama) #37
+
 0.1023  2013-06-15 01:51:22 PDT
         - Move the bin directory (moznion) #35
 
