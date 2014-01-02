@@ -595,13 +595,15 @@ sub run {
 package Twiggy::Writer;
 use AnyEvent::Handle;
 
+use constant DEBUG => $ENV{TWIGGY_DEBUG};
+
 sub new {
     my ( $class, $socket, $exit ) = @_;
 
     bless { handle => AnyEvent::Handle->new( fh => $socket ), exit_guard => $exit }, $class;
 }
 
-sub write { $_[0]{handle}->push_write($_[1]) }
+sub write { eval { $_[0]{handle}->push_write($_[1]) }; warn if DEBUG && $@ }
 
 sub close {
     my $self = shift;
