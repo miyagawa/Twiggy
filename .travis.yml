@@ -1,0 +1,5 @@
+sudo: false
+language: perl
+perl:
+  - "5.20"
+  - 5.18
