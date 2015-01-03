@@ -2,6 +2,9 @@ Revision history for Perl extension Twiggy
 
 {{$NEXT}}
 
+0.1025  2015-01-04 07:00:16 JST
+        - Fix a bug where Twiggy's run loop exits after a streaming request is cut off (hoelzro) #41
+
 0.1024  2013-10-12 11:35:35 PDT
         - Fix a bug where exit_guard is not correctly decremented when writing header failed (maedama) #37
 

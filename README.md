@@ -36,13 +36,13 @@ as:
     content (server push).
 
     This software used to be called Plack::Server::AnyEvent but was
-    renamed to Twiggy. See ["NAMING"](#NAMING) for details.
+    renamed to Twiggy. See ["NAMING"](#naming) for details.
 
 - Fast header parser
 
     Uses XS/C based HTTP header parser for the best performance. (optional,
-    install the [HTTP::Parser::XS](http://search.cpan.org/perldoc?HTTP::Parser::XS) module to enable it; see also
-    [Plack::HTTPParser](http://search.cpan.org/perldoc?Plack::HTTPParser) for more information).
+    install the [HTTP::Parser::XS](https://metacpan.org/pod/HTTP::Parser::XS) module to enable it; see also
+    [Plack::HTTPParser](https://metacpan.org/pod/Plack::HTTPParser) for more information).
 
 - Lightweight and Fast
 
@@ -52,18 +52,16 @@ as:
 
 - Superdaemon aware
 
-    Supports [Server::Starter](http://search.cpan.org/perldoc?Server::Starter) for hot deploy and
+    Supports [Server::Starter](https://metacpan.org/pod/Server::Starter) for hot deploy and
     graceful restarts.
 
     To use it, instead of the usual:
 
         plackup --server Twiggy --port 8111 app.psgi
 
-    install [Server::Starter](http://search.cpan.org/perldoc?Server::Starter) and use:
+    install [Server::Starter](https://metacpan.org/pod/Server::Starter) and use:
 
         start_server --port 8111 plackup --server Twiggy app.psgi
-
-
 
 # ENVIRONMENT
 
@@ -72,8 +70,6 @@ The following environment variables are supported.
 - TWIGGY\_DEBUG
 
     Set to true to enable debug messages from Twiggy.
-
-
 
 # NAMING
 
@@ -90,7 +86,7 @@ call it HSPHIWWWM on IRC. It's hard to say on speeches and newbies
 would ask questions what they stand for every day. That's crazy.
 
 This module actually includes the longer alias and an empty subclass
-[AnyEvent::Server::PSGI](http://search.cpan.org/perldoc?AnyEvent::Server::PSGI) for those who like to type more ::'s. It
+[AnyEvent::Server::PSGI](https://metacpan.org/pod/AnyEvent::Server::PSGI) for those who like to type more ::'s. It
 would actually help you find this software by searching for _PSGI
 Server AnyEvent_ on CPAN, which i believe is a good thing.
 
@@ -114,4 +110,4 @@ Daisuke Maki
 
 # SEE ALSO
 
-[Plack](http://search.cpan.org/perldoc?Plack) [AnyEvent](http://search.cpan.org/perldoc?AnyEvent) [Tatsumaki](http://search.cpan.org/perldoc?Tatsumaki)
+[Plack](https://metacpan.org/pod/Plack) [AnyEvent](https://metacpan.org/pod/AnyEvent) [Tatsumaki](https://metacpan.org/pod/Tatsumaki)

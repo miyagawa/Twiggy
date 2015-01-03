@@ -4,13 +4,13 @@
       "Tatsuhiko Miyagawa"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Dist::Milla version v1.0.4, Dist::Zilla version 4.300039, CPAN::Meta::Converter version 2.132830",
+   "generated_by" : "Dist::Zilla version 5.029, Dist::Milla version v1.0.9, CPAN::Meta::Converter version 2.143240",
    "license" : [
       "perl_5"
    ],
    "meta-spec" : {
       "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
-      "version" : "2"
+      "version" : 2
    },
    "name" : "Twiggy",
    "no_index" : {
@@ -26,11 +26,12 @@
    "prereqs" : {
       "configure" : {
          "requires" : {
-            "ExtUtils::MakeMaker" : "6.30"
+            "ExtUtils::MakeMaker" : "0"
          }
       },
       "develop" : {
          "requires" : {
+            "Dist::Milla" : "v1.0.9",
             "Test::Pod" : "1.41"
          }
       },
@@ -63,13 +64,14 @@
          "web" : "https://github.com/miyagawa/Twiggy"
       }
    },
-   "version" : "0.1024",
+   "version" : "0.1025",
    "x_contributors" : [
       "Adam Thomason <ad@mthomason.net>",
       "Chia-liang Kao <clkao@clkao.org>",
       "Kazuho Oku <kazuho@kazdev.in.labs.cybozu.co.jp>",
       "Moritz Onken <onken@netcubed.de>",
       "Pedro Melo <melo@simplicidade.org>",
+      "Rob Hoelz <rob@hoelz.ro>",
       "Sergey Zasenko <d3fin3@gmail.com>",
       "Tatsuhiko Miyagawa <miyagawa@gmail.com>",
       "Tomas Doran (t0m) <t0m@state51.co.uk>",
