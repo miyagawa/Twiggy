@@ -20,7 +20,9 @@ sub start_listen {
     my $ports = server_ports();
     while (my ($hostport, $fd) = each %$ports ) {
         push @listen, $hostport;
-        $self->_create_ss_tcp_server($hostport, $fd, $app);
+        # listen guards are released after SIGQUIT
+        push @{$self->{listen_guards}}, 
+             $self->_create_ss_tcp_server($hostport, $fd, $app);
     }
 
     # overwrite, just in case somebody wants to refer to it afterwards
