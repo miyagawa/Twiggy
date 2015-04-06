@@ -53,9 +53,8 @@ sub register_service {
     $self->start_listen($app);
 
     $self->{exit_guard} = AE::cv {
-        # Make sure that we are not listening on a socket anymore, while
-        # other events are being flushed
-        delete $self->{listen_guards};
+        #  uninstal SIGQUIT handler
+        delete $self->{sigquit_handler};
     };
     $self->{exit_guard}->begin;
 }
@@ -595,7 +594,24 @@ sub run {
     my $self = shift;
     $self->register_service(@_);
 
-    my $w; $w = AE::signal QUIT => sub { $self->{exit_guard}->end; undef $w };
+    my $sigquit_received = 0;
+
+    my $w = AE::signal QUIT => sub {
+        if (! $sigquit_received ) {
+
+            # decrease AE counter only once!
+            $self->{exit_guard}->end;
+            $sigquit_received = 1;
+
+            # to terminate listening on ports
+            # even if requests are still running
+            delete $self->{listen_guards};
+        }
+    };
+
+    # sigquit handler must be kept to prevent 
+    # multiple SIGQUIT kills app ungracefully
+    $self->{sigquit_handler} = $w;
     $self->{exit_guard}->recv;
 }
 
