@@ -607,10 +607,24 @@ sub new {
 
     $exit->begin if $exit;
 
-    bless { handle => AnyEvent::Handle->new( fh => $socket ), exit_guard => $exit }, $class;
+    my $writer;
+    $writer = {
+        handle => AnyEvent::Handle->new(
+            fh       => $socket,
+            on_error => sub {
+                # remove handler
+                delete $writer->{handle};
+            }
+        ),
+        exit_guard => $exit
+    };
+
+    bless $writer, $class;
+
 }
 
-sub write { $_[0]{handle}->push_write($_[1]) }
+
+sub write { $_[0]{handle}->push_write($_[1]) if ($_[0]{handle}); }
 
 sub close {
     my $self = shift;
