@@ -25,6 +25,12 @@ Run C<plackup -h> for more options.
 
 =head1 SEE ALSO
 
-L<Twiggy>
+=over
+
+=item L<Twiggy>
+
+=item L<plackup>
+
+=back
 
 =cut
