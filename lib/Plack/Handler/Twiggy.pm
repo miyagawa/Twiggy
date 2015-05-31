@@ -39,7 +39,13 @@ This is an adapter to run PSGI apps on Twiggy via L<plackup>.
 
 =head1 SEE ALSO
 
-L<plackup>
+=over
+
+=item L<Twiggy>
+
+=item L<plackup>
+
+=back
 
 =cut
 
