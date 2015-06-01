@@ -43,6 +43,9 @@ my $server = Test::TCP->new(
     auto_start => 1,
 );
 
+# wait a second for server start
+sleep(1);
+
 request($server->port);
 
 kill 'QUIT' => $server->pid;
