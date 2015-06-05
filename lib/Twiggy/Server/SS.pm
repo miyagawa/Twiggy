@@ -18,9 +18,9 @@ sub start_listen {
 
     my @listen;
     my $ports = server_ports();
-    while (my ($hostport, $fd) = each %$ports ) {
-        push @listen, $hostport;
-        $self->_create_ss_tcp_server($hostport, $fd, $app);
+    while (my ($listen, $fd) = each %$ports ) {
+        push @listen, $listen;
+        $self->_create_ss_tcp_server($listen, $fd, $app);
     }
 
     # overwrite, just in case somebody wants to refer to it afterwards
@@ -28,17 +28,17 @@ sub start_listen {
 }
 
 sub _create_ss_tcp_server {
-    my ($self, $hostport, $fd, $app) = @_;
+    my ($self, $listen, $fd, $app) = @_;
 
-    my $is_tcp = 1; # currently no unix socket support
-
-    my ($host, $port);
-    if ($hostport =~ /(.*):(\d+)/) {
-        $host = $1;
-        $port = $2;
+    my($host, $port, $is_tcp);
+    if ($listen =~ /:\d+$/) {
+        ($host, $port) = split /:/, $listen;
+        $host = undef if $host eq '';
+        $port = undef if $port == 0;
+        $is_tcp = 1;
     } else {
-        $host ||= '0.0.0.0';
-        $port = $hostport;
+        $host = "unix/";
+        $port = $listen;
     }
 
     # /WE/ don't care what the address family, type of socket we got, just
