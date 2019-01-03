@@ -26,6 +26,8 @@ use constant HAS_AIO => !$ENV{PLACK_NO_SENDFILE} && try {
     1;
 };
 
+my %CREATED_WRITER;
+
 open my $null_io, '<', \'';
 
 sub new {
@@ -327,7 +329,7 @@ sub _run_app {
                     $self->_flush($sock);
 
                     my $writer = Twiggy::Writer->new($sock, $self->{exit_guard});
-                    $self->{created_writer} = 1;
+                    $CREATED_WRITER{0+$sock} = 1;
 
                     my $buf = $self->_format_headers($status, $headers);
                     $writer->write($$buf);
@@ -366,12 +368,12 @@ sub _write_psgi_response {
                 $self->_write_body($sock, $body)->cb(sub {
                     shutdown $sock, 1;
                     close $sock;
-                    $self->{exit_guard}->end unless $self->{created_writer};
+                    $self->{exit_guard}->end;
                     local $@;
                     eval { $cv->send($_[0]->recv); 1 } or $cv->croak($@);
                 });
             } else {
-                $self->{exit_guard}->end unless $self->{created_writer};
+                $self->{exit_guard}->end unless delete $CREATED_WRITER{0+$sock};
                 eval { $cv->send($_[0]->recv); 1 } or $cv->croak($@);
             }
         });
@@ -616,6 +618,7 @@ sub close {
         $handle->on_error;
 
         $handle->on_drain(sub {
+            delete $CREATED_WRITER{0+$_[0]->fh};
             shutdown $_[0]->fh, 1;
             $_[0]->destroy;
             undef $handle;
