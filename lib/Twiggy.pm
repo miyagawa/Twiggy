@@ -89,28 +89,6 @@ Set to true to enable debug messages from Twiggy.
 
 =back
 
-
-=head1 NAMING
-
-=head2 Twiggy?
-
-Because it is like L<Thin|http://code.macournoyer.com/thin/>, Ruby's
-Rack web server using EventMachine. You know, Twiggy is thin :)
-
-=head2 Why the cute name instead of more descriptive namespace? Are you on drugs?
-
-I'm sick of naming Perl software like
-HTTP::Server::PSGI::How::Its::Written::With::What::Module and people
-call it HSPHIWWWM on IRC. It's hard to say on speeches and newbies
-would ask questions what they stand for every day. That's crazy.
-
-This module actually includes the longer alias and an empty subclass
-L<AnyEvent::Server::PSGI> for those who like to type more ::'s. It
-would actually help you find this software by searching for I<PSGI
-Server AnyEvent> on CPAN, which i believe is a good thing.
-
-Yes, maybe I'm on drugs. We'll see.
-
 =head1 LICENSE
 
 This module is licensed under the same terms as Perl itself.
