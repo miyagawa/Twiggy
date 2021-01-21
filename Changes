@@ -2,6 +2,9 @@ Revision history for Perl extension Twiggy
 
 {{$NEXT}}
 
+0.1026  2021-01-20 23:01:13 PST
+        - Improved documentation
+
 0.1025  2015-01-04 07:00:16 JST
         - Fix a bug where Twiggy's run loop exits after a streaming request is cut off (hoelzro) #41
 
