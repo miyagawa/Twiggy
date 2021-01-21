@@ -9,7 +9,7 @@ __END__
 
 =head1 NAME
 
-Twiggy - AnyEvent HTTP server for PSGI (like Thin)
+Twiggy - AnyEvent HTTP server for PSGI
 
 =head1 SYNOPSIS
 
@@ -47,7 +47,7 @@ jobs or delayed responses such as long-poll, WebSocket or streaming
 content (server push).
 
 This software used to be called Plack::Server::AnyEvent but was
-renamed to Twiggy. See L</NAMING> for details.
+renamed to Twiggy.
 
 =item Fast header parser
 
