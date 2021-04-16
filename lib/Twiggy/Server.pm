@@ -26,6 +26,8 @@ use constant HAS_AIO => !$ENV{PLACK_NO_SENDFILE} && try {
     1;
 };
 
+my %CREATED_WRITER;
+
 open my $null_io, '<', \'';
 
 sub new {
@@ -315,8 +317,6 @@ sub _run_app {
         Carp::carp("Returning AnyEvent condvar is deprecated and will be removed in the next release of Twiggy. Use the streaming callback interface intstead.");
         $res->cb(sub { $self->_write_psgi_response($sock, shift->recv) });
     } elsif ( ref $res eq 'CODE' ) {
-        my $created_writer;
-
         $res->(
             sub {
                 my $res = shift;
@@ -329,7 +329,7 @@ sub _run_app {
                     $self->_flush($sock);
 
                     my $writer = Twiggy::Writer->new($sock, $self->{exit_guard});
-                    $created_writer = 1;
+                    $CREATED_WRITER{0+$sock} = 1;
 
                     my $buf = $self->_format_headers($status, $headers);
                     $writer->write($$buf);
@@ -343,10 +343,6 @@ sub _run_app {
             },
             $sock,
         );
-
-        if($created_writer) {
-            $self->{exit_guard}->end; # normally _write_psgi_response calls this, but it doesn't get called when we use a writer!
-        }
     } else {
         croak("Unknown response type: $res");
     }
@@ -377,7 +373,7 @@ sub _write_psgi_response {
                     eval { $cv->send($_[0]->recv); 1 } or $cv->croak($@);
                 });
             } else {
-                $self->{exit_guard}->end;
+                $self->{exit_guard}->end unless delete $CREATED_WRITER{0+$sock};
                 eval { $cv->send($_[0]->recv); 1 } or $cv->croak($@);
             }
         });
@@ -605,8 +601,6 @@ use AnyEvent::Handle;
 sub new {
     my ( $class, $socket, $exit ) = @_;
 
-    $exit->begin if $exit;
-
     bless { handle => AnyEvent::Handle->new( fh => $socket ), exit_guard => $exit }, $class;
 }
 
@@ -624,6 +618,7 @@ sub close {
         $handle->on_error;
 
         $handle->on_drain(sub {
+            delete $CREATED_WRITER{0+$_[0]->fh};
             shutdown $_[0]->fh, 1;
             $_[0]->destroy;
             undef $handle;
